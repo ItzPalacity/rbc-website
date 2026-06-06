@@ -206,7 +206,10 @@ if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekda
     </div>
 
     <div style="background:var(--navy-mid);">
-      <div style="max-width:100%;max-height:480px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2d42);min-height:240px;font-size:80px;">${article.heroEmoji || '📰'}</div>
+      ${article.heroImage
+        ? `<img src="${article.heroImage}" alt="${article.title}" style="width:100%;max-height:480px;object-fit:cover;display:block;" />`
+        : `<div style="max-width:100%;max-height:480px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2d42);min-height:240px;font-size:80px;">${article.heroEmoji || '📰'}</div>`
+      }
       ${article.imageCaption ? `<div class="container"><p class="article-img-caption" style="color:var(--gray-400);padding:8px 0;font-size:13px;font-style:italic;">${article.imageCaption}</p></div>` : ''}
     </div>
 
@@ -259,6 +262,16 @@ if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekda
         </div>
       </a>`).join('');
   } catch {}
+
+  // Track view — fires after 5s so bounces don't count; JS-only so bots are excluded
+  setTimeout(async () => {
+    try {
+      await fetch(`/api/articles/${article.id}/view`, {
+        method: 'POST',
+        headers: { 'X-RBC-View': '1', 'Content-Type': 'application/json' }
+      });
+    } catch {}
+  }, 5000);
 
   // Load related articles
   try {

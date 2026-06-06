@@ -159,7 +159,7 @@ app.get('/api/articles/:idOrSlug', (req, res) => {
 
 // Admin — create article
 app.post('/api/articles', requireAuth, (req, res) => {
-  const { title, subtitle, body, category, tags, status, heroEmoji, imageCaption } = req.body;
+  const { title, subtitle, body, category, tags, status, heroEmoji, heroImage, imageCaption } = req.body;
   if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
   const articles = readJSON(ARTICLES_FILE);
   let slug = slugify(title);
@@ -178,12 +178,14 @@ app.post('/api/articles', requireAuth, (req, res) => {
     tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
     status: status || 'draft',
     heroEmoji: heroEmoji || '📰',
+    heroImage: heroImage || '',
     imageCaption: imageCaption || '',
     author: req.session.user.displayName,
     authorUsername: req.session.user.username,
     createdAt: now,
     publishedAt: status === 'published' ? now : null,
-    updatedAt: now
+    updatedAt: now,
+    views: 0
   };
   articles.unshift(article);
   writeJSON(ARTICLES_FILE, articles);
@@ -195,7 +197,7 @@ app.put('/api/articles/:id', requireAuth, (req, res) => {
   const articles = readJSON(ARTICLES_FILE);
   const idx = articles.findIndex(a => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Article not found' });
-  const { title, subtitle, body, category, tags, status, heroEmoji, imageCaption } = req.body;
+  const { title, subtitle, body, category, tags, status, heroEmoji, heroImage, imageCaption } = req.body;
   const existing = articles[idx];
   const wasPublished = existing.status === 'published';
   const now = new Date().toISOString();
@@ -216,6 +218,7 @@ app.put('/api/articles/:id', requireAuth, (req, res) => {
     tags: tags !== undefined ? tags.split(',').map(t => t.trim()).filter(Boolean) : existing.tags,
     status: status || existing.status,
     heroEmoji: heroEmoji || existing.heroEmoji,
+    heroImage: heroImage !== undefined ? heroImage : (existing.heroImage || ''),
     imageCaption: imageCaption !== undefined ? imageCaption : existing.imageCaption,
     slug,
     updatedAt: now,
@@ -253,6 +256,45 @@ app.put('/api/settings', requireAuth, (req, res) => {
   if (ticker !== undefined) current.ticker = ticker;
   writeJSON(SETTINGS_FILE, current);
   res.json({ ok: true, settings: current });
+});
+
+// ── View tracking ─────────────────────────────────────────────────────────────
+// In-memory store: "ip:articleId" -> timestamp of last view
+const viewCache = new Map();
+const VIEW_COOLDOWN = 60 * 60 * 1000; // 1 hour per IP per article
+
+// Known bot/crawler User-Agent patterns
+const BOT_PATTERN = /bot|crawl|spider|slurp|mediapartners|googlebot|bingbot|yandex|baidu|duckduck|teoma|ia_archiver|facebookexternalhit|whatsapp|twitterbot|linkedinbot|discordbot|telegrambot|preview|headless|phantom|selenium|puppeteer|playwright|wget|curl|python|java|go-http|ruby|scrapy|httpclient|okhttp/i;
+
+app.post('/api/articles/:id/view', (req, res) => {
+  // Must be a JS-triggered request
+  if (req.headers['x-rbc-view'] !== '1') return res.status(400).json({ ok: false, reason: 'missing-header' });
+
+  const ua = req.headers['user-agent'] || '';
+  if (BOT_PATTERN.test(ua)) return res.json({ ok: false, reason: 'bot' });
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+  const key = `${ip}:${req.params.id}`;
+  const now = Date.now();
+  const last = viewCache.get(key);
+
+  if (last && now - last < VIEW_COOLDOWN) return res.json({ ok: false, reason: 'duplicate' });
+
+  const articles = readJSON(ARTICLES_FILE);
+  const idx = articles.findIndex(a => a.id === req.params.id || a.slug === req.params.id);
+  if (idx === -1) return res.status(404).json({ ok: false, reason: 'not-found' });
+  if (articles[idx].status !== 'published') return res.json({ ok: false, reason: 'not-published' });
+
+  articles[idx].views = (articles[idx].views || 0) + 1;
+  writeJSON(ARTICLES_FILE, articles);
+  viewCache.set(key, now);
+
+  // Prune old cache entries every 10k entries
+  if (viewCache.size > 10000) {
+    for (const [k, t] of viewCache) { if (now - t > VIEW_COOLDOWN) viewCache.delete(k); }
+  }
+
+  res.json({ ok: true, views: articles[idx].views });
 });
 
 // ── Bookings API ──────────────────────────────────────────────────────────────
