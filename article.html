@@ -7,13 +7,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
   <div class="container">
     <div class="topbar__inner">
+      <div class="topbar__ticker" id="topbar-ticker-wrap" style="display:none;">
+        <span class="topbar__ticker-label">LATEST</span>
+        <div class="ticker-scroll"><div class="ticker-scroll__inner" id="topbar-ticker"></div></div>
+      </div>
       <div class="topbar__right" style="margin-left:auto;">
         <span class="topbar__date" id="topbar-date"></span>
         <span class="topbar__server">democracycraft.net</span>
@@ -22,10 +27,11 @@
   </div>
 </div>
 
+<!-- HEADER -->
 <header class="header">
   <div class="container">
     <div class="header__inner">
-      <a href="index.html" class="header__logo">
+      <a href="/" class="header__logo">
         <div class="logo-icon">RBC</div>
         <div class="logo-text">
           <div class="logo-text__name">Redmont Broadcasting Co.</div>
@@ -33,24 +39,37 @@
         </div>
       </a>
       <nav class="header__nav">
-        <a href="index.html" class="nav__link">Home</a>
-        <a href="politics.html" class="nav__link">Politics</a>
-        <a href="economy.html" class="nav__link">Economy</a>
-        <a href="law.html" class="nav__link">Law &amp; Justice</a>
-        <a href="community.html" class="nav__link">Community</a>
-        <a href="opinion.html" class="nav__link">Opinion</a>
-        <a href="archive.html" class="nav__link">Archive</a>
+        <a href="/" class="nav__link">Home</a>
+        <a href="/politics" class="nav__link">Politics</a>
+        <a href="/economy" class="nav__link">Economy</a>
+        <a href="/law" class="nav__link">Law &amp; Justice</a>
+        <a href="/community" class="nav__link">Community</a>
+        <a href="/opinion" class="nav__link">Opinion</a>
+        <a href="/archive" class="nav__link">Archive</a>
       </nav>
       <div class="header__actions">
-        <a href="submit.html" class="btn btn--primary btn--sm">Submit a Tip</a>
+        <a href="/submit" class="btn btn--primary btn--sm">Submit a Tip</a>
       </div>
     </div>
   </div>
 </header>
 
+<!-- BREAKING BANNER -->
+<div class="breaking-banner" id="breaking-banner" style="display:none;">
+  <div class="container">
+    <div class="breaking-banner__inner">
+      <span class="breaking-banner__label">BREAKING</span>
+      <div class="breaking-banner__text">
+        <div class="breaking-banner__scroll" id="breaking-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Article loads here -->
 <div id="article-root"></div>
 
+<!-- FOOTER -->
 <footer class="footer">
   <div class="container">
     <div class="footer__grid">
@@ -59,7 +78,7 @@
           <div class="footer__logo-icon">RBC</div>
           <div class="footer__logo-text">Redmont Broadcasting Company</div>
         </div>
-        <p class="footer__desc">DemocracyCraft's independent news service — fair, factual, and fearless coverage since the server's founding.</p>
+        <p class="footer__desc">DemocracyCraft's independent news service — fair, factual, and fearless.</p>
         <div class="footer__socials">
           <div class="footer__social-btn">💬</div>
           <div class="footer__social-btn">📋</div>
@@ -70,19 +89,19 @@
       <div>
         <div class="footer__col-title">Sections</div>
         <div class="footer__col-links">
-          <a href="politics.html" class="footer__col-link">Politics</a>
-          <a href="economy.html" class="footer__col-link">Economy</a>
-          <a href="law.html" class="footer__col-link">Law &amp; Justice</a>
-          <a href="community.html" class="footer__col-link">Community</a>
-          <a href="opinion.html" class="footer__col-link">Opinion</a>
+          <a href="/politics" class="footer__col-link">Politics</a>
+          <a href="/economy" class="footer__col-link">Economy</a>
+          <a href="/law" class="footer__col-link">Law &amp; Justice</a>
+          <a href="/community" class="footer__col-link">Community</a>
+          <a href="/opinion" class="footer__col-link">Opinion</a>
+          <a href="/archive" class="footer__col-link">Archive</a>
         </div>
       </div>
       <div>
         <div class="footer__col-title">Company</div>
         <div class="footer__col-links">
-          <a href="about.html" class="footer__col-link">About RBC</a>
-          <a href="submit.html" class="footer__col-link">Submit a Tip</a>
-          <a href="advertise.html" class="footer__col-link">Advertise</a>
+          <a href="/submit" class="footer__col-link">Submit a Tip</a>
+          <a href="/advertise" class="footer__col-link">Advertise</a>
         </div>
       </div>
       <div>
@@ -99,8 +118,29 @@
   </div>
 </footer>
 
-<script src="js/main.js"></script>
 <script>
+// Date
+const dateEl = document.getElementById('topbar-date');
+if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// Load settings (ticker / breaking news)
+(async function loadSettings() {
+  try {
+    const r = await fetch('/api/settings');
+    const s = await r.json();
+    if (s.breakingNews) {
+      document.getElementById('breaking-banner').style.display = '';
+      document.getElementById('breaking-text').innerHTML = `<span>${s.breakingNews}&nbsp;&nbsp;&nbsp;</span><span>${s.breakingNews}&nbsp;&nbsp;&nbsp;</span>`;
+    }
+    if (s.ticker && s.ticker.length) {
+      document.getElementById('topbar-ticker-wrap').style.display = '';
+      const items = s.ticker.map(t => `<span>${t}</span>`).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
+      document.getElementById('topbar-ticker').innerHTML = items + '&nbsp;&nbsp;|&nbsp;&nbsp;' + items;
+    }
+  } catch {}
+})();
+
+// Load article
 (async function () {
   const slug = location.pathname.replace('/article/', '').replace(/\/$/, '');
   const root = document.getElementById('article-root');
@@ -119,12 +159,21 @@
 
   document.title = `${article.title} — RBC`;
 
-  const catTagClass = article.category === 'Economy' ? 'tag--gold' : article.category === 'Sports' || article.category === 'Community' ? 'tag--gold' : '';
+  const catTagClass = ['Economy','Community','Sports','Elections'].includes(article.category) ? 'tag--gold' : article.category === 'Crime' ? 'tag--navy' : '';
   const published = new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
   const updated = article.updatedAt && article.updatedAt !== article.publishedAt
     ? `<span style="margin-left:12px;font-size:11px;color:var(--gray-400);">Updated ${new Date(article.updatedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>` : '';
 
   const tags = (article.tags || []).map(t => `<span class="article-tag-chip">#${t}</span>`).join('');
+
+  // Detect if body is plain text (no HTML tags) and wrap in paragraphs
+  function formatBody(body) {
+    if (!body) return '<p style="color:var(--text-muted);">(No content)</p>';
+    const hasHtml = /<[a-z][\s\S]*>/i.test(body);
+    if (hasHtml) return body;
+    // Plain text — split on double newlines for paragraphs, single newlines become <br>
+    return body.split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+  }
 
   root.innerHTML = `
     <div class="article-header">
@@ -133,8 +182,8 @@
           <span class="tag ${catTagClass}">${article.category.toUpperCase()}</span>
           &nbsp;
           <span style="font-size:12px;color:var(--gray-400);">
-            <a href="index.html" style="color:var(--gray-400);">Home</a> ›
-            <span style="color:var(--gray-200);">${article.category}</span>
+            <a href="/" style="color:var(--gray-400);">Home</a> ›
+            <a href="/${article.category.toLowerCase().replace(/\s+&\s+/g,'-').replace(/\s+/g,'-')}" style="color:var(--gray-200);">${article.category}</a>
           </span>
         </div>
         <h1 class="article-header__title">${article.title}</h1>
@@ -158,13 +207,13 @@
 
     <div style="background:var(--navy-mid);">
       <div style="max-width:100%;max-height:480px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2d42);min-height:240px;font-size:80px;">${article.heroEmoji || '📰'}</div>
-      ${article.imageCaption ? `<div class="container"><p class="article-img-caption" style="color:var(--gray-400);">${article.imageCaption}</p></div>` : ''}
+      ${article.imageCaption ? `<div class="container"><p class="article-img-caption" style="color:var(--gray-400);padding:8px 0;font-size:13px;font-style:italic;">${article.imageCaption}</p></div>` : ''}
     </div>
 
     <div class="container">
       <div class="article-layout">
         <article class="article-body">
-          ${article.body || '<p style="color:var(--text-muted);">(No content)</p>'}
+          ${formatBody(article.body)}
           ${tags ? `<div class="article-tags">${tags}</div>` : ''}
         </article>
 
@@ -175,15 +224,19 @@
               <div class="ad-unit ad-unit--tall" style="border:none;border-radius:0;">
                 <span class="ad-unit__label" style="margin-top:24px;">Premium Sidebar</span>
                 <span class="ad-unit__sub">Reach RBC readers · Paid in DC$</span>
-                <a href="advertise.html" class="ad-unit__dc">Book (DC$)</a>
+                <a href="/advertise" class="ad-unit__dc">Book (DC$)</a>
               </div>
             </div>
           </div>
           <div class="widget">
+            <div class="widget__header">🔥 Latest Stories</div>
+            <div class="widget__body" style="padding:0;" id="sidebar-latest"></div>
+          </div>
+          <div class="widget">
             <div class="widget__header widget__header--red">📻 About RBC</div>
             <div class="widget__body">
-              <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">RBC is DemocracyCraft's independent news outlet. We report without fear or favour.</p>
-              <a href="about.html" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;margin-top:10px;">Learn More</a>
+              <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">RBC is DemocracyCraft's independent news outlet. Fair, factual, and fearless.</p>
+              <a href="/submit" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;margin-top:10px;">Submit a Tip</a>
             </div>
           </div>
         </aside>
@@ -193,10 +246,24 @@
     <div id="related-root"></div>
   `;
 
+  // Load sidebar latest
+  try {
+    const r2 = await fetch('/api/articles?limit=5');
+    const latest = await r2.json();
+    document.getElementById('sidebar-latest').innerHTML = latest.map(a => `
+      <a href="/article/${a.slug}" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="width:50px;height:44px;border-radius:4px;flex-shrink:0;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:18px;">${a.heroEmoji||'📰'}</div>
+        <div>
+          <div style="font-family:var(--font-serif);font-size:13px;font-weight:600;color:var(--navy);line-height:1.3;">${a.title}</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${a.category} · ${new Date(a.publishedAt||a.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>
+      </a>`).join('');
+  } catch {}
+
   // Load related articles
   try {
-    const r2 = await fetch(`/api/articles?category=${encodeURIComponent(article.category)}&limit=4`);
-    const related = (await r2.json()).filter(a => a.id !== article.id).slice(0, 3);
+    const r3 = await fetch(`/api/articles?category=${encodeURIComponent(article.category)}&limit=4`);
+    const related = (await r3.json()).filter(a => a.id !== article.id).slice(0, 3);
     if (related.length) {
       document.getElementById('related-root').innerHTML = `
         <section class="related-section">
@@ -241,7 +308,7 @@ function notFound() {
     <div style="font-size:60px;margin-bottom:16px;">📭</div>
     <h1 style="font-family:var(--font-serif);font-size:32px;color:var(--navy);margin-bottom:8px;">Article Not Found</h1>
     <p style="color:var(--text-muted);margin-bottom:20px;">This article may have been removed or the link is incorrect.</p>
-    <a href="index.html" class="btn btn--primary">← Back to Homepage</a>
+    <a href="/" class="btn btn--primary">← Back to Homepage</a>
   </div>`;
 }
 </script>
