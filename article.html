@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loading… — RBC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <div class="container">
+    <div class="topbar__inner">
+      <div class="topbar__right" style="margin-left:auto;">
+        <span class="topbar__date" id="topbar-date"></span>
+        <span class="topbar__server">democracycraft.net</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="container">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">
+        <div class="logo-icon">RBC</div>
+        <div class="logo-text">
+          <div class="logo-text__name">Redmont Broadcasting Co.</div>
+          <div class="logo-text__sub">DemocracyCraft's Trusted News Source</div>
+        </div>
+      </a>
+      <nav class="header__nav">
+        <a href="index.html" class="nav__link">Home</a>
+        <a href="politics.html" class="nav__link">Politics</a>
+        <a href="economy.html" class="nav__link">Economy</a>
+        <a href="law.html" class="nav__link">Law &amp; Justice</a>
+        <a href="community.html" class="nav__link">Community</a>
+        <a href="opinion.html" class="nav__link">Opinion</a>
+        <a href="archive.html" class="nav__link">Archive</a>
+      </nav>
+      <div class="header__actions">
+        <a href="submit.html" class="btn btn--primary btn--sm">Submit a Tip</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Article loads here -->
+<div id="article-root"></div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <div class="footer__logo-icon">RBC</div>
+          <div class="footer__logo-text">Redmont Broadcasting Company</div>
+        </div>
+        <p class="footer__desc">DemocracyCraft's independent news service — fair, factual, and fearless coverage since the server's founding.</p>
+        <div class="footer__socials">
+          <div class="footer__social-btn">💬</div>
+          <div class="footer__social-btn">📋</div>
+          <div class="footer__social-btn">📰</div>
+          <div class="footer__social-btn">🐦</div>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Sections</div>
+        <div class="footer__col-links">
+          <a href="politics.html" class="footer__col-link">Politics</a>
+          <a href="economy.html" class="footer__col-link">Economy</a>
+          <a href="law.html" class="footer__col-link">Law &amp; Justice</a>
+          <a href="community.html" class="footer__col-link">Community</a>
+          <a href="opinion.html" class="footer__col-link">Opinion</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <div class="footer__col-links">
+          <a href="about.html" class="footer__col-link">About RBC</a>
+          <a href="submit.html" class="footer__col-link">Submit a Tip</a>
+          <a href="advertise.html" class="footer__col-link">Advertise</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <div class="footer__col-links">
+          <a href="#" class="footer__col-link">Privacy Policy</a>
+          <a href="#" class="footer__col-link">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div>© 2026 Redmont Broadcasting Company · Fan-made for <span class="footer__dc-badge">🌍 democracycraft.net</span></div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+(async function () {
+  const slug = location.pathname.replace('/article/', '').replace(/\/$/, '');
+  const root = document.getElementById('article-root');
+
+  if (!slug) { root.innerHTML = notFound(); return; }
+
+  let article;
+  try {
+    const r = await fetch(`/api/articles/${slug}`);
+    if (!r.ok) { root.innerHTML = notFound(); return; }
+    article = await r.json();
+  } catch {
+    root.innerHTML = '<div class="container" style="padding:60px 0;text-align:center;color:var(--text-muted);">Could not load article.</div>';
+    return;
+  }
+
+  document.title = `${article.title} — RBC`;
+
+  const catTagClass = article.category === 'Economy' ? 'tag--gold' : article.category === 'Sports' || article.category === 'Community' ? 'tag--gold' : '';
+  const published = new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  const updated = article.updatedAt && article.updatedAt !== article.publishedAt
+    ? `<span style="margin-left:12px;font-size:11px;color:var(--gray-400);">Updated ${new Date(article.updatedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>` : '';
+
+  const tags = (article.tags || []).map(t => `<span class="article-tag-chip">#${t}</span>`).join('');
+
+  root.innerHTML = `
+    <div class="article-header">
+      <div class="container">
+        <div class="article-header__tag">
+          <span class="tag ${catTagClass}">${article.category.toUpperCase()}</span>
+          &nbsp;
+          <span style="font-size:12px;color:var(--gray-400);">
+            <a href="index.html" style="color:var(--gray-400);">Home</a> ›
+            <span style="color:var(--gray-200);">${article.category}</span>
+          </span>
+        </div>
+        <h1 class="article-header__title">${article.title}</h1>
+        ${article.subtitle ? `<p class="article-header__subtitle">${article.subtitle}</p>` : ''}
+        <div class="article-header__byline">
+          <div class="byline__avatar">
+            <div class="img-placeholder" style="height:44px;font-size:20px;">👤</div>
+          </div>
+          <div class="byline__info">
+            <div class="byline__author">${article.author}</div>
+            <div class="byline__meta">RBC · ${published}${updated}</div>
+          </div>
+          <div class="byline__sep"></div>
+          <div class="byline__share">
+            <span>Share:</span>
+            <button class="byline__share-btn" onclick="copyLink()">🔗 Copy Link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--navy-mid);">
+      <div style="max-width:100%;max-height:480px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b2a,#1b2d42);min-height:240px;font-size:80px;">${article.heroEmoji || '📰'}</div>
+      ${article.imageCaption ? `<div class="container"><p class="article-img-caption" style="color:var(--gray-400);">${article.imageCaption}</p></div>` : ''}
+    </div>
+
+    <div class="container">
+      <div class="article-layout">
+        <article class="article-body">
+          ${article.body || '<p style="color:var(--text-muted);">(No content)</p>'}
+          ${tags ? `<div class="article-tags">${tags}</div>` : ''}
+        </article>
+
+        <aside class="sidebar">
+          <div class="widget">
+            <div class="widget__header widget__header--gold">📢 Advertisement</div>
+            <div class="widget__body" style="padding:0;">
+              <div class="ad-unit ad-unit--tall" style="border:none;border-radius:0;">
+                <span class="ad-unit__label" style="margin-top:24px;">Premium Sidebar</span>
+                <span class="ad-unit__sub">Reach RBC readers · Paid in DC$</span>
+                <a href="advertise.html" class="ad-unit__dc">Book (DC$)</a>
+              </div>
+            </div>
+          </div>
+          <div class="widget">
+            <div class="widget__header widget__header--red">📻 About RBC</div>
+            <div class="widget__body">
+              <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">RBC is DemocracyCraft's independent news outlet. We report without fear or favour.</p>
+              <a href="about.html" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;margin-top:10px;">Learn More</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="related-root"></div>
+  `;
+
+  // Load related articles
+  try {
+    const r2 = await fetch(`/api/articles?category=${encodeURIComponent(article.category)}&limit=4`);
+    const related = (await r2.json()).filter(a => a.id !== article.id).slice(0, 3);
+    if (related.length) {
+      document.getElementById('related-root').innerHTML = `
+        <section class="related-section">
+          <div class="container">
+            <div class="section-header">
+              <div class="section-header__left">
+                <div class="section-header__accent"></div>
+                <h2 class="section-header__title">More in ${article.category}</h2>
+              </div>
+            </div>
+            <div class="articles-grid articles-grid--3">
+              ${related.map(a => `
+                <article class="card">
+                  <div class="card__img-wrap"><div class="img-placeholder card__img">${a.heroEmoji || '📰'}</div></div>
+                  <div class="card__body">
+                    <span class="tag">${a.category.toUpperCase()}</span>
+                    <h3 class="card__title"><a href="/article/${a.slug}">${a.title}</a></h3>
+                    ${a.subtitle ? `<p class="card__excerpt">${a.subtitle}</p>` : ''}
+                    <div class="card__meta">
+                      <span class="card__author">${a.author}</span>
+                      <span class="card__dot">·</span>
+                      <span>${new Date(a.publishedAt||a.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
+                    </div>
+                  </div>
+                </article>`).join('')}
+            </div>
+          </div>
+        </section>`;
+    }
+  } catch {}
+})();
+
+function copyLink() {
+  navigator.clipboard.writeText(location.href).then(() => {
+    const btn = document.querySelector('.byline__share-btn');
+    if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '🔗 Copy Link', 2000); }
+  });
+}
+
+function notFound() {
+  return `<div class="container" style="padding:80px 0;text-align:center;">
+    <div style="font-size:60px;margin-bottom:16px;">📭</div>
+    <h1 style="font-family:var(--font-serif);font-size:32px;color:var(--navy);margin-bottom:8px;">Article Not Found</h1>
+    <p style="color:var(--text-muted);margin-bottom:20px;">This article may have been removed or the link is incorrect.</p>
+    <a href="index.html" class="btn btn--primary">← Back to Homepage</a>
+  </div>`;
+}
+</script>
+</body>
+</html>

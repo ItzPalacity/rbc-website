@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit a Tip — Redmont Broadcasting Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+    .form-label span { color: var(--red); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+      border-radius: var(--radius); font-size: 14px; font-family: var(--font-sans);
+      outline: none; transition: var(--transition); background: var(--white); color: var(--text);
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(192,57,43,0.08); }
+    .form-textarea { min-height: 140px; resize: vertical; }
+    .form-hint { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .tip-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: flex; gap: 16px; align-items: flex-start; }
+    .tip-card__icon { font-size: 28px; flex-shrink: 0; }
+    .tip-card__title { font-weight: 700; font-size: 15px; color: var(--navy); margin-bottom: 4px; }
+    .tip-card__text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="container">
+    <div class="topbar__inner">
+      <div class="topbar__right" style="margin-left:auto;">
+        <span class="topbar__date" id="topbar-date"></span>
+        <span class="topbar__server">democracycraft.net</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="container">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">
+        <div class="logo-icon">RBC</div>
+        <div class="logo-text">
+          <div class="logo-text__name">Redmont Broadcasting Co.</div>
+          <div class="logo-text__sub">DemocracyCraft's Trusted News Source</div>
+        </div>
+      </a>
+      <nav class="header__nav">
+        <a href="index.html" class="nav__link">Home</a>
+        <a href="politics.html" class="nav__link">Politics</a>
+        <a href="economy.html" class="nav__link">Economy</a>
+        <a href="law.html" class="nav__link">Law &amp; Justice</a>
+        <a href="community.html" class="nav__link">Community</a>
+        <a href="opinion.html" class="nav__link">Opinion</a>
+      </nav>
+      <div class="header__actions">
+        <a href="submit.html" class="btn btn--primary btn--sm">Submit a Tip</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<div style="background:var(--navy);padding:48px 0 40px;">
+  <div class="container" style="max-width:760px;">
+    <span class="tag tag--gold" style="margin-bottom:14px;display:inline-block;">For the Public</span>
+    <h1 style="font-family:var(--font-serif);font-size:42px;font-weight:700;color:var(--white);margin-bottom:12px;letter-spacing:-0.5px;">Submit a News Tip</h1>
+    <p style="font-size:16px;color:var(--gray-200);line-height:1.6;max-width:600px;">Witnessed something newsworthy in DemocracyCraft? Know of corruption, injustice, a big story, or a community moment worth sharing? Tell us. Your identity will never be revealed without your permission.</p>
+  </div>
+</div>
+
+<!-- INFO CARDS -->
+<section style="padding:36px 0;background:var(--off-white);">
+  <div class="container" style="max-width:760px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px;">
+      <div class="tip-card">
+        <div class="tip-card__icon">🔒</div>
+        <div>
+          <div class="tip-card__title">Confidential by Default</div>
+          <div class="tip-card__text">Your username is never shared with anyone outside RBC editorial. You can submit completely anonymously if you prefer.</div>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-card__icon">⚡</div>
+        <div>
+          <div class="tip-card__title">Fast Response</div>
+          <div class="tip-card__text">Our editorial team reviews all tips within 24 hours and will contact you if we need more information before publishing.</div>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-card__icon">✅</div>
+        <div>
+          <div class="tip-card__title">Verified Before Publishing</div>
+          <div class="tip-card__text">All tips are independently verified. We won't publish something we can't confirm — accuracy is our standard.</div>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-card__icon">🎖️</div>
+        <div>
+          <div class="tip-card__title">Credit If You Want It</div>
+          <div class="tip-card__text">Let us know if you'd like to be credited in the story. Many readers choose to remain anonymous — both are completely fine.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;">
+      <h2 style="font-family:var(--font-serif);font-size:24px;font-weight:700;color:var(--navy);margin-bottom:24px;">Your Tip</h2>
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">In-Game Username <span>(optional)</span></label>
+            <input class="form-input" type="text" placeholder="YourUsername" />
+            <div class="form-hint">Leave blank to submit anonymously</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category <span>*</span></label>
+            <select class="form-select">
+              <option value="">— Select a section —</option>
+              <option>Politics</option>
+              <option>Economy</option>
+              <option>Law &amp; Justice</option>
+              <option>Crime</option>
+              <option>Community</option>
+              <option>Sports</option>
+              <option>Elections</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Headline / Subject <span>*</span></label>
+          <input class="form-input" type="text" placeholder="What's the story in one line?" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tell Us What You Know <span>*</span></label>
+          <textarea class="form-textarea" placeholder="Describe what happened — who, what, where, when, why. The more detail the better. Include any evidence, screenshots, or context you have."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Evidence / Links</label>
+          <input class="form-input" type="text" placeholder="Forum links, screenshot URLs, case numbers…" />
+          <div class="form-hint">Paste any relevant forum posts, court case links, or screenshot URLs</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Can we contact you for follow-up?</label>
+          <select class="form-select">
+            <option>Yes — contact me in-game</option>
+            <option>Yes — contact me via Discord</option>
+            <option>No — submit anonymously</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Discord Username (if applicable)</label>
+          <input class="form-input" type="text" placeholder="Username#0000" />
+        </div>
+        <button type="submit" class="btn btn--primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Submit Your Tip →</button>
+        <p style="font-size:11px;color:var(--gray-400);text-align:center;margin-top:10px;">By submitting you confirm this information is accurate to the best of your knowledge. Deliberately false tips may result in action under DemocracyCraft server rules.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <div class="footer__logo-icon">RBC</div>
+          <div class="footer__logo-text">Redmont Broadcasting Company</div>
+        </div>
+        <p class="footer__desc">DemocracyCraft's independent news service — fair, factual, and fearless.</p>
+      </div>
+      <div>
+        <div class="footer__col-title">Sections</div>
+        <div class="footer__col-links">
+          <a href="politics.html" class="footer__col-link">Politics</a>
+          <a href="economy.html" class="footer__col-link">Economy</a>
+          <a href="law.html" class="footer__col-link">Law &amp; Justice</a>
+          <a href="community.html" class="footer__col-link">Community</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <div class="footer__col-links">
+          <a href="about.html" class="footer__col-link">About RBC</a>
+          <a href="submit.html" class="footer__col-link">Submit a Tip</a>
+          <a href="advertise.html" class="footer__col-link">Advertise</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <div class="footer__col-links">
+          <a href="#" class="footer__col-link">Privacy Policy</a>
+          <a href="#" class="footer__col-link">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div>© 2026 Redmont Broadcasting Company · Fan-made for <span class="footer__dc-badge">🌍 democracycraft.net</span></div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

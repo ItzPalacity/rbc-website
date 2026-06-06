@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redmont Broadcasting Company — DemocracyCraft News</title>
+  <meta name="description" content="The premier news source for DemocracyCraft — politics, economy, law, and community coverage." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="container">
+    <div class="topbar__inner">
+      <div class="topbar__ticker" id="topbar-ticker-wrap" style="display:none;">
+        <span class="topbar__ticker-label">LATEST</span>
+        <div class="ticker-scroll"><div class="ticker-scroll__inner" id="topbar-ticker"></div></div>
+      </div>
+      <div class="topbar__right" style="margin-left:auto;">
+        <span class="topbar__date" id="topbar-date"></span>
+        <span class="topbar__server">democracycraft.net</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="container">
+    <div class="header__inner">
+      <a href="index.html" class="header__logo">
+        <div class="logo-icon">RBC</div>
+        <div class="logo-text">
+          <div class="logo-text__name">Redmont Broadcasting Co.</div>
+          <div class="logo-text__sub">DemocracyCraft's Trusted News Source</div>
+        </div>
+      </a>
+      <nav class="header__nav">
+        <a href="/" class="nav__link active">Home</a>
+        <a href="/politics" class="nav__link">Politics</a>
+        <a href="/economy" class="nav__link">Economy</a>
+        <a href="/law" class="nav__link">Law &amp; Justice</a>
+        <a href="/community" class="nav__link">Community</a>
+        <a href="/opinion" class="nav__link">Opinion</a>
+        <a href="/archive" class="nav__link">Archive</a>
+      </nav>
+      <div class="header__actions">
+        <div class="search-bar" style="max-width:200px;">
+          <input class="search-bar__input" placeholder="Search…" type="search" />
+          <button class="search-bar__btn">🔍</button>
+        </div>
+        <a href="submit.html" class="btn btn--primary btn--sm">Submit a Tip</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- BREAKING BANNER — shown only if set in admin -->
+<div class="breaking-banner" id="breaking-banner" style="display:none;">
+  <div class="container">
+    <div class="breaking-banner__inner">
+      <span class="breaking-banner__label">BREAKING</span>
+      <div class="breaking-banner__text">
+        <div class="breaking-banner__scroll" id="breaking-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AD LEADERBOARD -->
+<div style="padding:12px 0; background:var(--white); border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="ad-unit ad-unit--leaderboard">
+      <span class="ad-unit__label">Your Business Here</span>
+      <span class="ad-unit__sub">Premium leaderboard placement — contact RBC for rates (paid in DC$)</span>
+      <button class="ad-unit__dc">Advertise with RBC</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY STRIP -->
+<div class="category-strip">
+  <div class="container">
+    <div class="category-strip__inner">
+      <a href="/archive" class="category-pill active">All</a>
+      <a href="/politics" class="category-pill">🏛️ Politics</a>
+      <a href="/economy" class="category-pill">📈 Economy</a>
+      <a href="/law" class="category-pill">⚖️ Law &amp; Justice</a>
+      <a href="/community" class="category-pill">🏘️ Community</a>
+      <a href="/opinion" class="category-pill">✍️ Opinion</a>
+      <a href="/archive?cat=Crime" class="category-pill">🚨 Crime</a>
+      <a href="/archive?cat=Sports" class="category-pill">⚽ Sports</a>
+      <a href="/archive?cat=Elections" class="category-pill">🗳️ Elections</a>
+    </div>
+  </div>
+</div>
+
+<!-- HERO — populated by JS from /api/articles -->
+<section class="hero" id="hero-section" style="display:none;">
+  <div class="container--wide">
+    <div class="hero__grid">
+      <a href="#" class="hero__main" id="hero-main">
+        <div class="img-placeholder hero__main-img" style="min-height:520px;" id="hero-emoji">📰</div>
+        <div class="hero__main-overlay">
+          <div class="hero__main-tag"><span class="tag" id="hero-tag">NEWS</span></div>
+          <h1 class="hero__main-title" id="hero-title"></h1>
+          <div class="hero__main-meta" id="hero-meta"></div>
+        </div>
+      </a>
+      <aside class="hero__sidebar">
+        <div class="hero__sidebar-header">Top Stories</div>
+        <div class="hero__sidebar-list" id="hero-sidebar-list"></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- EMPTY STATE shown when no articles published yet -->
+<div id="hero-empty" style="background:var(--navy);padding:80px 0;text-align:center;">
+  <div style="font-size:56px;margin-bottom:16px;">📻</div>
+  <h2 style="font-family:var(--font-serif);font-size:28px;color:var(--white);margin-bottom:8px;">More stories coming soon</h2>
+  <p style="color:var(--gray-400);font-size:15px;">Redmont Broadcasting Company — stay tuned.</p>
+</div>
+
+<!-- MAIN CONTENT -->
+<main>
+
+  <!-- TOP STORIES -->
+  <section class="content-section">
+    <div class="container">
+      <div class="main-grid">
+        <div>
+          <div class="section-header">
+            <div class="section-header__left">
+              <div class="section-header__accent"></div>
+              <h2 class="section-header__title">Latest Stories</h2>
+            </div>
+            <a href="archive.html" class="section-header__link">View All →</a>
+          </div>
+
+          <!-- Populated by JS -->
+          <div class="articles-grid articles-grid--2" id="latest-top" style="margin-bottom:28px;"></div>
+          <div class="articles-grid articles-grid--3" id="latest-bottom"></div>
+          <div id="latest-empty" style="display:none;"></div>
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+          <!-- Ad unit -->
+          <div class="widget">
+            <div class="widget__header widget__header--gold">📢 Advertisement</div>
+            <div class="widget__body" style="padding:0;">
+              <div class="ad-unit ad-unit--sidebar" style="border:none; border-radius:0;">
+                <span class="ad-unit__label" style="margin-top:20px;">Premium Sidebar Ad</span>
+                <span class="ad-unit__sub">Reach thousands of DemocracyCraft readers</span>
+                <button class="ad-unit__dc">Book This Space (DC$)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trending — populated by JS -->
+          <div class="widget" id="trending-widget" style="display:none;">
+            <div class="widget__header">🔥 Trending Now</div>
+            <div class="widget__body">
+              <div class="trending-list" id="trending-list"></div>
+            </div>
+          </div>
+
+          <!-- About Widget -->
+          <div class="widget">
+            <div class="widget__header widget__header--red">📻 About RBC</div>
+            <div class="widget__body">
+              <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:12px;">The <strong>Redmont Broadcasting Company</strong> is DemocracyCraft's independent news service — delivering fair, factual reporting on politics, economy, law, and community life.</p>
+              <a href="about.html" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;">About Us</a>
+            </div>
+          </div>
+
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPINION SECTION — populated by JS when opinion articles exist -->
+  <section id="opinion-section" style="display:none;background:var(--navy-mid); padding:40px 0;">
+    <div class="container">
+      <div class="section-header" style="border-bottom-color:rgba(255,255,255,0.15);">
+        <div class="section-header__left">
+          <div class="section-header__accent" style="background:var(--gold);"></div>
+          <h2 class="section-header__title" style="color:var(--white);">Opinion &amp; Analysis</h2>
+        </div>
+        <a href="opinion.html" class="section-header__link" style="color:var(--gold);">All Columns →</a>
+      </div>
+      <div class="articles-grid articles-grid--3" id="opinion-grid"></div>
+    </div>
+  </section>
+
+  <!-- FEATURED QUOTE -->
+  <section style="padding:40px 0; background:var(--off-white);">
+    <div class="container">
+      <blockquote class="quote-block">
+        The role of the press is not to please those in power — it is to hold them accountable to those they serve.
+        <span class="quote-block__attr">— RBC Editorial Charter</span>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- BOTTOM AD LEADERBOARD -->
+  <div style="padding:20px 0; background:var(--white); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="container">
+      <div class="ad-unit ad-unit--leaderboard">
+        <span class="ad-unit__label">Advertise Your Business</span>
+        <span class="ad-unit__sub">Leaderboard slot — high visibility placement across all RBC pages · Payments accepted in DC$</span>
+        <button class="ad-unit__dc">Get In Touch</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- NEWSLETTER -->
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter__inner">
+      <div>
+        <h2 class="newsletter__title">Stay Informed.<br/>Stay Connected.</h2>
+        <p class="newsletter__sub">Get the week's top DemocracyCraft stories delivered straight to you. No noise — just news.</p>
+      </div>
+      <div>
+        <form class="newsletter__form">
+          <input class="newsletter__input" type="email" placeholder="Your in-game username or email…" />
+          <button class="newsletter__btn" type="submit">Subscribe</button>
+        </form>
+        <p style="font-size:11px;color:var(--gray-400);margin-top:8px;">By subscribing you agree to receive RBC updates. Unsubscribe any time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <div class="footer__logo-icon">RBC</div>
+          <div class="footer__logo-text">Redmont Broadcasting Company</div>
+        </div>
+        <p class="footer__desc">The Redmont Broadcasting Company is DemocracyCraft's independent news service, providing fair, factual, and fearless coverage of government, economy, law, and community since the server's founding.</p>
+        <div class="footer__socials">
+          <div class="footer__social-btn" title="Discord">💬</div>
+          <div class="footer__social-btn" title="Forums">📋</div>
+          <div class="footer__social-btn" title="Reddit">📰</div>
+          <div class="footer__social-btn" title="Twitter/X">🐦</div>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Sections</div>
+        <div class="footer__col-links">
+          <a href="/politics" class="footer__col-link">Politics</a>
+          <a href="/economy" class="footer__col-link">Economy</a>
+          <a href="/law" class="footer__col-link">Law &amp; Justice</a>
+          <a href="/community" class="footer__col-link">Community</a>
+          <a href="/opinion" class="footer__col-link">Opinion</a>
+          <a href="/archive" class="footer__col-link">Archive</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <div class="footer__col-links">
+          <a href="/submit" class="footer__col-link">Submit a Tip</a>
+          <a href="/advertise" class="footer__col-link">Advertise</a>
+          <a href="#" class="footer__col-link">Editorial Standards</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <div class="footer__col-links">
+          <a href="#" class="footer__col-link">Privacy Policy</a>
+          <a href="#" class="footer__col-link">Terms of Use</a>
+          <a href="#" class="footer__col-link">Cookie Policy</a>
+          <a href="#" class="footer__col-link">Contact Us</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <div>© 2026 Redmont Broadcasting Company. All rights reserved. Fan-made project for <span class="footer__dc-badge">🌍 democracycraft.net</span></div>
+      <div class="footer__bottom-links">
+        <a href="#" class="footer__bottom-link">Privacy</a>
+        <a href="#" class="footer__bottom-link">Terms</a>
+        <a href="#" class="footer__bottom-link">Advertise</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+// Load ticker & breaking news from settings
+(async function loadSettings() {
+  try {
+    const r = await fetch('/api/settings');
+    const s = await r.json();
+    if (s.breakingNews) {
+      const banner = document.getElementById('breaking-banner');
+      const text = document.getElementById('breaking-text');
+      banner.style.display = '';
+      text.innerHTML = `<span>${s.breakingNews}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>${s.breakingNews}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+    }
+    if (s.ticker && s.ticker.length) {
+      const wrap = document.getElementById('topbar-ticker-wrap');
+      const ticker = document.getElementById('topbar-ticker');
+      wrap.style.display = '';
+      const items = s.ticker.map(t => `<span>${t}</span>`).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
+      ticker.innerHTML = items + '&nbsp;&nbsp;|&nbsp;&nbsp;' + items;
+    }
+  } catch {}
+})();
+
+(async function () {
+  function catClass(cat) {
+    return (['Economy','Community','Sports','Elections'].includes(cat)) ? 'tag--gold' : cat === 'Crime' ? 'tag--navy' : '';
+  }
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+  function card(a, featured) {
+    return `<article class="card${featured?' card--featured':''}">
+      <div class="card__img-wrap"><div class="img-placeholder card__img">${a.heroEmoji||'📰'}</div></div>
+      <div class="card__body">
+        <span class="tag ${catClass(a.category)}">${a.category.toUpperCase()}</span>
+        <h3 class="card__title"><a href="/article/${a.slug}">${a.title}</a></h3>
+        ${a.subtitle?`<p class="card__excerpt">${a.subtitle}</p>`:''}
+        <div class="card__meta">
+          <span class="card__author">${a.author}</span>
+          <span class="card__dot">·</span>
+          <span>${fmtDate(a.publishedAt||a.createdAt)}</span>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  try {
+    const r = await fetch('/api/articles?limit=20');
+    const all = await r.json();
+    const published = all.filter(a => a.status === 'published');
+
+    if (!published.length) return; // empty state already visible
+
+    // Show hero, hide empty state
+    document.getElementById('hero-empty').style.display = 'none';
+    document.getElementById('hero-section').style.display = '';
+
+    // Hero main
+    const h = published[0];
+    document.getElementById('hero-main').href = `/article/${h.slug}`;
+    document.getElementById('hero-emoji').textContent = h.heroEmoji || '📰';
+    document.getElementById('hero-tag').textContent = h.category.toUpperCase();
+    document.getElementById('hero-title').textContent = h.title;
+    document.getElementById('hero-meta').innerHTML = `<span>By <strong>${h.author}</strong></span><span class="hero__main-meta-dot">·</span><span>${fmtDate(h.publishedAt||h.createdAt)}</span>`;
+
+    // Hero sidebar
+    const sidebar = published.slice(1, 5);
+    document.getElementById('hero-sidebar-list').innerHTML = sidebar.map((a, i) => `
+      <a href="/article/${a.slug}" class="sidebar-story">
+        <span class="sidebar-story__num">0${i+1}</span>
+        <div class="sidebar-story__body">
+          <div class="sidebar-story__tag"><span class="tag ${catClass(a.category)}">${a.category.toUpperCase()}</span></div>
+          <div class="sidebar-story__title">${a.title}</div>
+          <div class="sidebar-story__meta">${fmtDate(a.publishedAt||a.createdAt)}</div>
+        </div>
+      </a>`).join('');
+
+    // Latest stories
+    const top2 = published.slice(0, 2);
+    const next3 = published.slice(2, 5);
+    const latestTop = document.getElementById('latest-top');
+    const latestBot = document.getElementById('latest-bottom');
+    const latestEmpty = document.getElementById('latest-empty');
+    if (top2.length) { latestTop.innerHTML = top2.map(a => card(a, true)).join(''); }
+    if (next3.length) { latestBot.innerHTML = next3.map(a => card(a, false)).join(''); }
+    if (!top2.length) latestEmpty.style.display = '';
+
+    // Trending sidebar
+    const trending = published.slice(0, 5);
+    if (trending.length) {
+      document.getElementById('trending-widget').style.display = '';
+      document.getElementById('trending-list').innerHTML = trending.map((a, i) => `
+        <a href="/article/${a.slug}" class="trending-item">
+          <span class="trending-item__num">${i+1}</span>
+          <div class="trending-item__body">
+            <div class="trending-item__title">${a.title}</div>
+            <div class="trending-item__meta">${a.category}</div>
+          </div>
+        </a>`).join('');
+    }
+
+    // Opinion section
+    const opinions = published.filter(a => a.category === 'Opinion').slice(0, 3);
+    if (opinions.length) {
+      document.getElementById('opinion-section').style.display = '';
+      document.getElementById('opinion-grid').innerHTML = opinions.map(a => `
+        <article class="opinion-card">
+          <div class="opinion-card__header">Opinion</div>
+          <div class="opinion-card__body">
+            <div class="opinion-card__author">
+              <div class="opinion-card__avatar"><div class="img-placeholder" style="height:100%;font-size:18px;">👤</div></div>
+              <div class="opinion-card__author-info">
+                <div class="opinion-card__author-name">${a.author}</div>
+                <div class="opinion-card__author-title">RBC Columnist</div>
+              </div>
+            </div>
+            <div class="opinion-card__title">${a.title}</div>
+            ${a.subtitle?`<div class="opinion-card__excerpt">${a.subtitle}</div>`:''}
+          </div>
+          <div class="opinion-card__footer">
+            <span>${fmtDate(a.publishedAt||a.createdAt)}</span>
+            <a href="/article/${a.slug}" style="color:var(--gold);font-size:12px;font-weight:600;">Read More →</a>
+          </div>
+        </article>`).join('');
+    }
+
+  } catch {}
+})();
+</script>
+</body>
+</html>

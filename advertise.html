@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advertise with RBC — Redmont Broadcasting Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .advert-hero { background: var(--navy); color: var(--white); padding: 64px 0 48px; }
+    .advert-hero__title { font-family: var(--font-serif); font-size: 48px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px; }
+    .advert-hero__sub { font-size: 18px; color: var(--gray-200); max-width: 600px; line-height: 1.6; }
+    .stats-bar { background: var(--red); padding: 24px 0; }
+    .stats-bar__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+    .stat { text-align: center; color: var(--white); border-right: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; }
+    .stat:last-child { border-right: none; }
+    .stat__num { font-family: var(--font-serif); font-size: 36px; font-weight: 700; display: block; }
+    .stat__label { font-size: 12px; opacity: 0.85; letter-spacing: 0.5px; }
+    .placement-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: var(--transition); }
+    .placement-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+    .placement-card__header { background: var(--navy); color: var(--white); padding: 20px 24px; }
+    .placement-card__name { font-family: var(--font-serif); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .placement-card__badge { display: inline-block; background: var(--gold); color: var(--navy); font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 2px; letter-spacing: 1px; text-transform: uppercase; }
+    .placement-card__body { padding: 24px; }
+    .placement-card__price { font-family: var(--font-serif); font-size: 28px; font-weight: 700; color: var(--red); margin-bottom: 4px; }
+    .placement-card__price-note { font-size: 12px; color: var(--gray-400); margin-bottom: 16px; }
+    .placement-card__features { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .feature { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); }
+    .feature::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; }
+    .placement-card__cta { display: block; text-align: center; background: var(--navy); color: var(--white); padding: 12px; border-radius: var(--radius); font-weight: 700; font-size: 14px; transition: var(--transition); cursor: pointer; text-decoration: none; }
+    .placement-card__cta:hover { background: var(--red); color: var(--white); }
+    .placement-card--featured .placement-card__header { background: var(--red); }
+    .placement-card--featured .placement-card__cta { background: var(--red); }
+    .placement-card--featured .placement-card__cta:hover { background: #b71c1c; }
+    .contact-form { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; letter-spacing: 0.3px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-size: 14px; font-family: var(--font-sans); outline: none; transition: var(--transition);
+      background: var(--white); color: var(--text); box-sizing: border-box;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--red); }
+    .form-textarea { min-height: 120px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .success-box { display:none; background:#f0fdf4; border:2px solid #22c55e; border-radius:var(--radius-lg); padding:36px; text-align:center; }
+    .success-box__icon { font-size:48px; margin-bottom:12px; }
+    .success-box__title { font-family:var(--font-serif); font-size:24px; font-weight:700; color:#166534; margin-bottom:8px; }
+    .success-box__sub { font-size:15px; color:#166534; opacity:.8; }
+    .error-msg { display:none; background:#fef2f2; border:1.5px solid var(--red); border-radius:var(--radius); padding:10px 14px; font-size:13px; color:var(--red); margin-bottom:16px; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="container">
+    <div class="topbar__inner">
+      <div class="topbar__ticker" id="topbar-ticker-wrap" style="display:none;">
+        <span class="topbar__ticker-label">LATEST</span>
+        <div class="ticker-scroll"><div class="ticker-scroll__inner" id="topbar-ticker"></div></div>
+      </div>
+      <div class="topbar__right" style="margin-left:auto;">
+        <span class="topbar__date" id="topbar-date"></span>
+        <span class="topbar__server">democracycraft.net</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="container">
+    <div class="header__inner">
+      <a href="/" class="header__logo">
+        <div class="logo-icon">RBC</div>
+        <div class="logo-text">
+          <div class="logo-text__name">Redmont Broadcasting Co.</div>
+          <div class="logo-text__sub">DemocracyCraft's Trusted News Source</div>
+        </div>
+      </a>
+      <nav class="header__nav">
+        <a href="/" class="nav__link">Home</a>
+        <a href="/politics" class="nav__link">Politics</a>
+        <a href="/economy" class="nav__link">Economy</a>
+        <a href="/law" class="nav__link">Law &amp; Justice</a>
+        <a href="/community" class="nav__link">Community</a>
+        <a href="/opinion" class="nav__link">Opinion</a>
+        <a href="/archive" class="nav__link">Archive</a>
+      </nav>
+      <div class="header__actions">
+        <a href="/submit" class="btn btn--primary btn--sm">Submit a Tip</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- BREAKING BANNER -->
+<div class="breaking-banner" id="breaking-banner" style="display:none;">
+  <div class="container">
+    <div class="breaking-banner__inner">
+      <span class="breaking-banner__label">BREAKING</span>
+      <div class="breaking-banner__text">
+        <div class="breaking-banner__scroll" id="breaking-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="advert-hero">
+  <div class="container">
+    <div style="display:inline-block;background:var(--gold);color:var(--navy);font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:2px;margin-bottom:16px;">Advertising</div>
+    <h1 class="advert-hero__title">Reach DemocracyCraft's<br/>Most Engaged Readers</h1>
+    <p class="advert-hero__sub">RBC is the republic's most-read news outlet. Place your business, shop, or service in front of active DemocracyCraft players — paid entirely in DC$.</p>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-bar__grid">
+      <div class="stat"><span class="stat__num">DC$</span><span class="stat__label">In-Game Currency Only</span></div>
+      <div class="stat"><span class="stat__num">3</span><span class="stat__label">Ad Placements</span></div>
+      <div class="stat"><span class="stat__num">24h</span><span class="stat__label">Response Time</span></div>
+      <div class="stat"><span class="stat__num">100%</span><span class="stat__label">DemocracyCraft Audience</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- AD PACKAGES -->
+<section style="padding:64px 0; background:var(--off-white);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <h2 style="font-family:var(--font-serif);font-size:34px;font-weight:700;color:var(--navy);margin-bottom:8px;">Advertising Packages</h2>
+      <p style="font-size:16px;color:var(--text-muted);">All prices in DC$ · Billed weekly · Cancel any time</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:48px;">
+
+      <div class="placement-card">
+        <div class="placement-card__header">
+          <div class="placement-card__name">Sidebar Ad</div>
+          <span class="placement-card__badge">Starter</span>
+        </div>
+        <div class="placement-card__body">
+          <div class="placement-card__price">DC$ 500</div>
+          <div class="placement-card__price-note">per week · sidebar placement</div>
+          <div class="placement-card__features">
+            <div class="feature">Sidebar on all article pages</div>
+            <div class="feature">Your logo, text &amp; link</div>
+            <div class="feature">Refresh creative weekly</div>
+            <div class="feature">Basic performance report</div>
+          </div>
+          <a href="#contact" class="placement-card__cta" onclick="preselectPackage('Sidebar Ad — DC$500/week')">Book Sidebar Ad</a>
+        </div>
+      </div>
+
+      <div class="placement-card placement-card--featured" style="border-color:var(--red);">
+        <div class="placement-card__header">
+          <div class="placement-card__name">Leaderboard Ad</div>
+          <span class="placement-card__badge" style="background:var(--white);color:var(--red);">Most Popular</span>
+        </div>
+        <div class="placement-card__body">
+          <div class="placement-card__price">DC$ 1,200</div>
+          <div class="placement-card__price-note">per week · top-of-page banner</div>
+          <div class="placement-card__features">
+            <div class="feature">Top-of-page placement site-wide</div>
+            <div class="feature">Seen before any article content</div>
+            <div class="feature">Maximum visibility</div>
+            <div class="feature">Weekly performance summary</div>
+            <div class="feature">Priority support</div>
+          </div>
+          <a href="#contact" class="placement-card__cta" onclick="preselectPackage('Leaderboard Ad — DC$1,200/week')">Book Leaderboard</a>
+        </div>
+      </div>
+
+      <div class="placement-card">
+        <div class="placement-card__header">
+          <div class="placement-card__name">Sponsored Article</div>
+          <span class="placement-card__badge">Premium</span>
+        </div>
+        <div class="placement-card__body">
+          <div class="placement-card__price">DC$ 2,500</div>
+          <div class="placement-card__price-note">one-time · full article</div>
+          <div class="placement-card__features">
+            <div class="feature">Full editorial-style sponsored post</div>
+            <div class="feature">Written by RBC staff or your copy</div>
+            <div class="feature">Promoted on homepage for 7 days</div>
+            <div class="feature">Permanent archive listing</div>
+            <div class="feature">Social promotion on RBC channels</div>
+          </div>
+          <a href="#contact" class="placement-card__cta" onclick="preselectPackage('Sponsored Article — DC$2,500')">Enquire Now</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Placement visual guide -->
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;">
+      <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:20px;">Where Your Ad Appears</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div>
+          <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
+            <div style="background:var(--navy);height:12px;border-radius:2px;margin-bottom:8px;"></div>
+            <div style="background:var(--red);height:6px;border-radius:2px;width:60%;margin-bottom:12px;"></div>
+            <div style="background:var(--gold);height:24px;border-radius:2px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--navy);">LEADERBOARD AD ← Here</div>
+            <div style="background:var(--gray-100);height:60px;border-radius:2px;margin-bottom:6px;"></div>
+            <div style="display:grid;grid-template-columns:1fr 60px;gap:6px;">
+              <div style="background:var(--gray-100);height:80px;border-radius:2px;"></div>
+              <div style="background:var(--gold);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--navy);text-align:center;padding:4px;">SIDE<br/>BAR</div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);">Homepage &amp; section pages — leaderboard above the fold, sidebar alongside articles</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="background:var(--off-white);border:1px solid var(--border);border-radius:var(--radius);padding:12px;">
+            <p style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px;">💡 Why advertise with RBC?</p>
+            <ul style="font-size:12px;color:var(--text-muted);padding-left:16px;list-style:disc;line-height:1.7;">
+              <li>DemocracyCraft's most-read publication</li>
+              <li>Engaged civic audience — real decision-makers</li>
+              <li>Affordable rates paid in DC$</li>
+              <li>Professional placement, no spam</li>
+              <li>Ethical advertising standards enforced</li>
+            </ul>
+          </div>
+          <div style="background:var(--navy);border-radius:var(--radius);padding:16px;color:var(--white);">
+            <p style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:6px;">Custom packages available</p>
+            <p style="font-size:12px;color:var(--gray-200);line-height:1.6;">Running a political campaign, a large business, or a community event? Contact us for a bespoke package — we'll work with your budget and goals.</p>
+            <a href="#contact" class="placement-card__cta" style="margin-top:12px;background:var(--gold);color:var(--navy);" onclick="preselectPackage('Custom Package')">Enquire about Custom</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING FORM -->
+<section id="contact" style="padding:64px 0; background:var(--white);">
+  <div class="container" style="max-width:760px;">
+    <div style="text-align:center;margin-bottom:36px;">
+      <h2 style="font-family:var(--font-serif);font-size:34px;font-weight:700;color:var(--navy);margin-bottom:8px;">Book Your Ad</h2>
+      <p style="font-size:15px;color:var(--text-muted);">Fill in the form below and an RBC representative will contact you within 24 hours to confirm your booking and arrange payment in DC$.</p>
+    </div>
+
+    <!-- Success state -->
+    <div class="success-box" id="success-box">
+      <div class="success-box__icon">✅</div>
+      <div class="success-box__title">Enquiry Received!</div>
+      <div class="success-box__sub">Thanks for your interest in advertising with RBC. We'll reach out within 24 hours to confirm your booking and arrange DC$ payment.</div>
+    </div>
+
+    <!-- Form -->
+    <div class="contact-form" id="booking-form-wrap">
+      <div class="error-msg" id="form-error"></div>
+      <form id="booking-form" onsubmit="submitBooking(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">In-Game Username *</label>
+            <input class="form-input" id="field-username" type="text" placeholder="YourUsername" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Business / Shop Name *</label>
+            <input class="form-input" id="field-business" type="text" placeholder="My Redmont Shop" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ad Package *</label>
+          <select class="form-select" id="field-package" required>
+            <option value="">— Select a package —</option>
+            <option value="Sidebar Ad — DC$500/week">Sidebar Ad — DC$500/week</option>
+            <option value="Leaderboard Ad — DC$1,200/week">Leaderboard Ad — DC$1,200/week</option>
+            <option value="Sponsored Article — DC$2,500">Sponsored Article — DC$2,500</option>
+            <option value="Custom Package">Custom Package</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ad Content / Business Description *</label>
+          <textarea class="form-textarea" id="field-content" placeholder="Tell us about your business and what you'd like the ad to say…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Contact (Discord username or forums)</label>
+          <input class="form-input" id="field-contact" type="text" placeholder="Username#0000" />
+        </div>
+        <button type="submit" id="submit-btn" class="btn btn--primary" style="width:100%;justify-content:center;padding:14px;">Send Booking Enquiry</button>
+        <p style="font-size:11px;color:var(--gray-400);text-align:center;margin-top:10px;">All ad placements are subject to RBC editorial review. We reserve the right to decline ads that conflict with our standards.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <div class="footer__logo-icon">RBC</div>
+          <div class="footer__logo-text">Redmont Broadcasting Company</div>
+        </div>
+        <p class="footer__desc">DemocracyCraft's independent news service — fair, factual, and fearless.</p>
+      </div>
+      <div>
+        <div class="footer__col-title">Sections</div>
+        <div class="footer__col-links">
+          <a href="/politics" class="footer__col-link">Politics</a>
+          <a href="/economy" class="footer__col-link">Economy</a>
+          <a href="/law" class="footer__col-link">Law &amp; Justice</a>
+          <a href="/community" class="footer__col-link">Community</a>
+          <a href="/opinion" class="footer__col-link">Opinion</a>
+          <a href="/archive" class="footer__col-link">Archive</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <div class="footer__col-links">
+          <a href="/submit" class="footer__col-link">Submit a Tip</a>
+          <a href="/advertise" class="footer__col-link">Advertise</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <div class="footer__col-links">
+          <a href="#" class="footer__col-link">Privacy Policy</a>
+          <a href="#" class="footer__col-link">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div>© 2026 Redmont Broadcasting Company · Fan-made for <span class="footer__dc-badge">🌍 democracycraft.net</span></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Date
+const dateEl = document.getElementById('topbar-date');
+if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// Load settings
+(async function() {
+  try {
+    const r = await fetch('/api/settings');
+    const s = await r.json();
+    if (s.breakingNews) {
+      document.getElementById('breaking-banner').style.display = '';
+      document.getElementById('breaking-text').innerHTML = `<span>${s.breakingNews}&nbsp;&nbsp;&nbsp;</span><span>${s.breakingNews}&nbsp;&nbsp;&nbsp;</span>`;
+    }
+    if (s.ticker && s.ticker.length) {
+      document.getElementById('topbar-ticker-wrap').style.display = '';
+      const items = s.ticker.map(t => `<span>${t}</span>`).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
+      document.getElementById('topbar-ticker').innerHTML = items + '&nbsp;&nbsp;|&nbsp;&nbsp;' + items;
+    }
+  } catch {}
+})();
+
+function preselectPackage(pkg) {
+  const sel = document.getElementById('field-package');
+  if (sel) sel.value = pkg;
+}
+
+async function submitBooking(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  const errEl = document.getElementById('form-error');
+  errEl.style.display = 'none';
+
+  const body = {
+    username: document.getElementById('field-username').value.trim(),
+    business: document.getElementById('field-business').value.trim(),
+    package:  document.getElementById('field-package').value,
+    content:  document.getElementById('field-content').value.trim(),
+    contact:  document.getElementById('field-contact').value.trim(),
+  };
+
+  if (!body.username || !body.business || !body.package || !body.content) {
+    errEl.textContent = 'Please fill in all required fields.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const r = await fetch('/api/bookings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Server error');
+    document.getElementById('booking-form-wrap').style.display = 'none';
+    document.getElementById('success-box').style.display = 'block';
+    window.scrollTo({ top: document.getElementById('contact').offsetTop - 20, behavior: 'smooth' });
+  } catch (err) {
+    errEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Send Booking Enquiry';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RBC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <div class="container">
+    <div class="topbar__inner">
+      <div class="topbar__ticker" id="topbar-ticker-wrap" style="display:none;">
+        <span class="topbar__ticker-label">LATEST</span>
+        <div class="ticker-scroll"><div class="ticker-scroll__inner" id="topbar-ticker"></div></div>
+      </div>
+      <div class="topbar__right" style="margin-left:auto;">
+        <span class="topbar__date" id="topbar-date"></span>
+        <span class="topbar__server">democracycraft.net</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="container">
+    <div class="header__inner">
+      <a href="/" class="header__logo">
+        <div class="logo-icon">RBC</div>
+        <div class="logo-text">
+          <div class="logo-text__name">Redmont Broadcasting Co.</div>
+          <div class="logo-text__sub">DemocracyCraft's Trusted News Source</div>
+        </div>
+      </a>
+      <nav class="header__nav" id="main-nav"></nav>
+      <div class="header__actions">
+        <div class="search-bar" style="max-width:200px;" id="search-form">
+          <input class="search-bar__input" placeholder="Search…" type="search" id="search-input" />
+          <button class="search-bar__btn" onclick="doSearch()">🔍</button>
+        </div>
+        <a href="/submit" class="btn btn--primary btn--sm">Submit a Tip</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- BREAKING BANNER -->
+<div class="breaking-banner" id="breaking-banner" style="display:none;">
+  <div class="container">
+    <div class="breaking-banner__inner">
+      <span class="breaking-banner__label">BREAKING</span>
+      <div class="breaking-banner__text">
+        <div class="breaking-banner__scroll" id="breaking-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE HEADER -->
+<div style="background:var(--navy);padding:40px 0 32px;">
+  <div class="container">
+    <div id="section-breadcrumb" style="font-size:12px;color:var(--gray-400);margin-bottom:10px;">
+      <a href="/" style="color:var(--gray-400);">Home</a> › <span id="section-breadcrumb-name"></span>
+    </div>
+    <h1 id="section-title" style="font-family:var(--font-serif);font-size:42px;font-weight:700;color:var(--white);margin-bottom:8px;letter-spacing:-0.5px;"></h1>
+    <p id="section-desc" style="font-size:15px;color:var(--gray-400);"></p>
+  </div>
+</div>
+
+<!-- SEARCH BAR (archive only) -->
+<div id="archive-search-bar" style="display:none;background:var(--white);border-bottom:1px solid var(--border);padding:16px 0;">
+  <div class="container" style="max-width:640px;">
+    <div class="search-bar">
+      <input class="search-bar__input" id="archive-search-input" placeholder="Search all articles…" type="search" oninput="filterArchive()" />
+      <button class="search-bar__btn">🔍</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY PILLS (archive only) -->
+<div id="archive-filter-bar" style="display:none;" class="category-strip">
+  <div class="container">
+    <div class="category-strip__inner" id="archive-cat-pills"></div>
+  </div>
+</div>
+
+<!-- ARTICLES -->
+<section style="padding:40px 0;">
+  <div class="container">
+    <div class="main-grid">
+      <div>
+        <div id="articles-container" class="articles-grid articles-grid--2"></div>
+        <div id="articles-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-muted);">
+          <div style="font-size:48px;margin-bottom:12px;">📭</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;">No articles yet</div>
+          <p>Check back soon — more stories are on the way.</p>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="widget">
+          <div class="widget__header widget__header--gold">📢 Advertisement</div>
+          <div class="widget__body" style="padding:0;">
+            <div class="ad-unit ad-unit--sidebar" style="border:none;border-radius:0;">
+              <span class="ad-unit__label" style="margin-top:20px;">Premium Sidebar</span>
+              <span class="ad-unit__sub">Reach RBC readers · Paid in DC$</span>
+              <a href="/advertise" class="ad-unit__dc">Book (DC$)</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget">
+          <div class="widget__header">🔥 Latest Stories</div>
+          <div class="widget__body" style="padding:0;">
+            <div id="sidebar-latest" style="display:flex;flex-direction:column;"></div>
+          </div>
+        </div>
+
+        <div class="widget">
+          <div class="widget__header widget__header--red">📻 About RBC</div>
+          <div class="widget__body">
+            <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">RBC is DemocracyCraft's independent news outlet. Fair, factual, and fearless.</p>
+            <a href="/submit" class="btn btn--outline btn--sm" style="width:100%;justify-content:center;margin-top:10px;">Submit a Tip</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter__inner">
+      <div>
+        <h2 class="newsletter__title">Stay Informed.<br/>Stay Connected.</h2>
+        <p class="newsletter__sub">Get the week's top DemocracyCraft stories delivered straight to you.</p>
+      </div>
+      <div>
+        <form class="newsletter__form" onsubmit="return false;">
+          <input class="newsletter__input" type="email" placeholder="Your in-game username or email…" />
+          <button class="newsletter__btn" type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <div class="footer__logo">
+          <div class="footer__logo-icon">RBC</div>
+          <div class="footer__logo-text">Redmont Broadcasting Company</div>
+        </div>
+        <p class="footer__desc">DemocracyCraft's independent news service — fair, factual, and fearless.</p>
+        <div class="footer__socials">
+          <div class="footer__social-btn">💬</div>
+          <div class="footer__social-btn">📋</div>
+          <div class="footer__social-btn">📰</div>
+          <div class="footer__social-btn">🐦</div>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Sections</div>
+        <div class="footer__col-links" id="footer-links"></div>
+      </div>
+      <div>
+        <div class="footer__col-title">Company</div>
+        <div class="footer__col-links">
+          <a href="/submit" class="footer__col-link">Submit a Tip</a>
+          <a href="/advertise" class="footer__col-link">Advertise</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer__col-title">Legal</div>
+        <div class="footer__col-links">
+          <a href="#" class="footer__col-link">Privacy Policy</a>
+          <a href="#" class="footer__col-link">Terms of Use</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <div>© 2026 Redmont Broadcasting Company · Fan-made for <span class="footer__dc-badge">🌍 democracycraft.net</span></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const SECTIONS = {
+  politics:  { title: 'Politics',        cat: 'Politics',       desc: 'Government, law-making, elections, and the people who shape DemocracyCraft.', emoji: '🏛️' },
+  economy:   { title: 'Economy',         cat: 'Economy',        desc: 'Markets, trade, business, and financial life in the republic.', emoji: '📈' },
+  law:       { title: 'Law & Justice',   cat: 'Law & Justice',  desc: 'Courts, legal rulings, crime, and the justice system.', emoji: '⚖️' },
+  community: { title: 'Community',       cat: 'Community',      desc: 'Events, culture, and the people who make Redmont home.', emoji: '🏘️' },
+  opinion:   { title: 'Opinion',         cat: 'Opinion',        desc: 'Columns, analysis, and editorial perspectives from RBC writers.', emoji: '✍️' },
+  archive:   { title: 'All Articles',    cat: null,             desc: 'Browse the full RBC archive — every story ever published.', emoji: '📚' },
+};
+
+const NAV_SECTIONS = [
+  { label: 'Politics',      href: '/politics' },
+  { label: 'Economy',       href: '/economy' },
+  { label: 'Law & Justice', href: '/law' },
+  { label: 'Community',     href: '/community' },
+  { label: 'Opinion',       href: '/opinion' },
+  { label: 'Archive',       href: '/archive' },
+];
+
+// Determine current section from URL
+const pagePath = location.pathname.replace(/^\//, '').replace(/\.html$/, '') || 'archive';
+const section = SECTIONS[pagePath] || SECTIONS.archive;
+const isArchive = pagePath === 'archive' || !section.cat;
+
+// Set page metadata
+document.title = `${section.title} — RBC`;
+document.getElementById('section-title').textContent = `${section.emoji}  ${section.title}`;
+document.getElementById('section-breadcrumb-name').textContent = section.title;
+document.getElementById('section-desc').textContent = section.desc;
+
+// Build nav
+const navEl = document.getElementById('main-nav');
+navEl.innerHTML = [{ label: 'Home', href: '/' }, ...NAV_SECTIONS].map(n =>
+  `<a href="${n.href}" class="nav__link${location.pathname === n.href || location.pathname === n.href + '.html' ? ' active' : ''}">${n.label}</a>`
+).join('');
+
+// Build footer section links
+document.getElementById('footer-links').innerHTML = NAV_SECTIONS.map(n =>
+  `<a href="${n.href}" class="footer__col-link">${n.label}</a>`
+).join('');
+
+// Show archive controls
+if (isArchive) {
+  document.getElementById('archive-search-bar').style.display = '';
+  document.getElementById('archive-filter-bar').style.display = '';
+}
+
+// Date
+const dateEl = document.getElementById('topbar-date');
+if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+function catClass(cat) {
+  return (['Economy','Community','Sports','Elections'].includes(cat)) ? 'tag--gold' : cat === 'Crime' ? 'tag--navy' : '';
+}
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+function cardHtml(a) {
+  return `<article class="card">
+    <div class="card__img-wrap"><div class="img-placeholder card__img">${a.heroEmoji||'📰'}</div></div>
+    <div class="card__body">
+      <span class="tag ${catClass(a.category)}">${(a.category||'').toUpperCase()}</span>
+      <h3 class="card__title"><a href="/article/${a.slug}">${a.title}</a></h3>
+      ${a.subtitle ? `<p class="card__excerpt">${a.subtitle}</p>` : ''}
+      <div class="card__meta">
+        <span class="card__author">${a.author}</span>
+        <span class="card__dot">·</span>
+        <span>${fmtDate(a.publishedAt||a.createdAt)}</span>
+      </div>
+    </div>
+  </article>`;
+}
+
+let allArticles = [];
+let archiveCatFilter = '';
+
+async function loadPage() {
+  // Load settings (ticker / breaking news)
+  try {
+    const rs = await fetch('/api/settings');
+    const settings = await rs.json();
+    if (settings.breakingNews) {
+      const banner = document.getElementById('breaking-banner');
+      const text = document.getElementById('breaking-text');
+      banner.style.display = '';
+      text.innerHTML = `<span>${settings.breakingNews}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span>${settings.breakingNews}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+    }
+    if (settings.ticker && settings.ticker.length) {
+      const wrap = document.getElementById('topbar-ticker-wrap');
+      const ticker = document.getElementById('topbar-ticker');
+      wrap.style.display = '';
+      const items = settings.ticker.map(t => `<span>${t}</span>`).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
+      ticker.innerHTML = items + '&nbsp;&nbsp;|&nbsp;&nbsp;' + items;
+    }
+  } catch {}
+
+  // Load articles
+  const url = section.cat ? `/api/articles?category=${encodeURIComponent(section.cat)}` : '/api/articles';
+  try {
+    const r = await fetch(url);
+    allArticles = await r.json();
+  } catch { allArticles = []; }
+
+  renderArticles(allArticles);
+
+  // Sidebar latest (5 most recent from all)
+  try {
+    const r2 = await fetch('/api/articles?limit=5');
+    const latest = await r2.json();
+    document.getElementById('sidebar-latest').innerHTML = latest.map(a => `
+      <a href="/article/${a.slug}" style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);text-decoration:none;">
+        <div style="width:50px;height:44px;border-radius:4px;flex-shrink:0;background:var(--gray-100);display:flex;align-items:center;justify-content:center;font-size:18px;">${a.heroEmoji||'📰'}</div>
+        <div>
+          <div style="font-family:var(--font-serif);font-size:13px;font-weight:600;color:var(--navy);line-height:1.3;">${a.title}</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${a.category} · ${fmtDate(a.publishedAt||a.createdAt)}</div>
+        </div>
+      </a>`).join('');
+  } catch {}
+
+  // Archive category pills
+  if (isArchive) {
+    const cats = ['All', ...new Set(allArticles.map(a => a.category))];
+    document.getElementById('archive-cat-pills').innerHTML = cats.map(c =>
+      `<span class="category-pill${c === 'All' ? ' active' : ''}" onclick="setArchiveCat('${c}',this)">${c}</span>`
+    ).join('');
+  }
+}
+
+function renderArticles(articles) {
+  const container = document.getElementById('articles-container');
+  const empty = document.getElementById('articles-empty');
+  if (!articles.length) { container.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  container.innerHTML = articles.map(a => cardHtml(a)).join('');
+}
+
+function filterArchive() {
+  const q = document.getElementById('archive-search-input').value.toLowerCase();
+  let filtered = allArticles;
+  if (archiveCatFilter && archiveCatFilter !== 'All') filtered = filtered.filter(a => a.category === archiveCatFilter);
+  if (q) filtered = filtered.filter(a => a.title.toLowerCase().includes(q) || (a.subtitle||'').toLowerCase().includes(q));
+  renderArticles(filtered);
+}
+
+function setArchiveCat(cat, el) {
+  archiveCatFilter = cat;
+  document.querySelectorAll('#archive-cat-pills .category-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  filterArchive();
+}
+
+function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if (q) window.location.href = `/archive?q=${encodeURIComponent(q)}`;
+}
+
+// Handle ?q= query param on archive
+if (isArchive) {
+  const qParam = new URLSearchParams(location.search).get('q');
+  if (qParam) {
+    window.addEventListener('DOMContentLoaded', () => {
+      const inp = document.getElementById('archive-search-input');
+      if (inp) { inp.value = qParam; }
+    });
+  }
+}
+
+loadPage();
+</script>
+</body>
+</html>

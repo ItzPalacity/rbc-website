@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RBC Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #c0392b; --red-dark: #96281b;
+      --navy: #0d1b2a; --navy-mid: #1b2d42; --navy-light: #243447;
+      --gold: #d4a843;
+      --white: #fff; --off-white: #f5f4f0;
+      --gray-100: #e8e6e1; --gray-200: #c9c6bf; --gray-400: #8a8880; --gray-600: #4a4845;
+      --text: #1a1917; --text-muted: #5a5855; --border: #dddbd6;
+      --green: #27ae60; --green-dark: #1e8449;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans: 'Inter', sans-serif;
+      --radius: 6px; --shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    body { font-family: var(--font-sans); background: var(--off-white); color: var(--text); min-height: 100vh; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── VIEWS ── */
+    #view-login { display: none; }
+    #view-login.active { display: flex; }
+    #view-shell { display: none; }
+    #view-shell.active { display: flex; }
+
+    /* ── LOGIN ── */
+    #view-login {
+      min-height: 100vh; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    }
+    .login-box {
+      background: var(--white); border-radius: 12px; padding: 48px 40px;
+      width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .login-logo { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+    .login-logo-icon {
+      width: 52px; height: 52px; background: var(--red); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-serif); font-size: 22px; font-weight: 700; color: var(--white);
+      box-shadow: 2px 3px 0 var(--red-dark);
+    }
+    .login-logo-text { font-family: var(--font-serif); font-size: 20px; font-weight: 700; color: var(--navy); line-height: 1.2; }
+    .login-logo-sub { font-size: 11px; color: var(--red); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--font-sans); }
+    .login-title { font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .login-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--navy); margin-bottom: 6px; text-transform: uppercase; }
+    .field input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-size: 14px; font-family: var(--font-sans); outline: none; transition: 0.15s;
+    }
+    .field input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
+    .btn-primary {
+      width: 100%; padding: 12px; background: var(--red); color: var(--white);
+      border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: 0.15s; font-family: var(--font-sans);
+    }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .error-msg { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; min-height: 18px; }
+
+    /* ── SHELL (logged in) ── */
+    #view-shell { min-height: 100vh; }
+
+    .sidebar-nav {
+      width: 240px; flex-shrink: 0; background: var(--navy);
+      display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0;
+    }
+    .snav-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--navy-light); }
+    .snav-logo-icon {
+      width: 40px; height: 40px; background: var(--red); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-serif); font-size: 16px; font-weight: 700; color: var(--white);
+      margin-bottom: 10px;
+    }
+    .snav-logo-name { font-family: var(--font-serif); font-size: 15px; font-weight: 700; color: var(--white); line-height: 1.2; }
+    .snav-logo-sub { font-size: 10px; color: var(--red); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+    .snav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400); }
+    .snav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--gray-200);
+      border-radius: 0; cursor: pointer; transition: 0.15s; border-left: 3px solid transparent;
+    }
+    .snav-link:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+    .snav-link.active { background: rgba(192,57,43,0.15); color: var(--white); border-left-color: var(--red); font-weight: 600; }
+    .snav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .snav-user { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--navy-light); }
+    .snav-user-name { font-size: 13px; font-weight: 700; color: var(--white); }
+    .snav-user-role { font-size: 11px; color: var(--gray-400); margin-bottom: 10px; }
+    .snav-logout { font-size: 12px; color: var(--gray-400); cursor: pointer; transition: 0.15s; }
+    .snav-logout:hover { color: var(--red); }
+
+    /* ── MAIN CONTENT ── */
+    .main-content { flex: 1; overflow-y: auto; }
+    .page { display: none; padding: 32px 36px; max-width: 1100px; }
+    .page.active { display: block; }
+
+    .page-header { margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; }
+    .page-title { font-family: var(--font-serif); font-size: 28px; font-weight: 700; color: var(--navy); }
+    .page-sub { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── DASHBOARD ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; }
+    .stat-card__num { font-family: var(--font-serif); font-size: 34px; font-weight: 700; color: var(--navy); }
+    .stat-card__label { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }
+    .stat-card__icon { font-size: 22px; margin-bottom: 8px; }
+
+    .recent-table { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .table-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 14px; color: var(--navy); }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-400); border-bottom: 1px solid var(--border); background: var(--off-white); }
+    td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,0,0,0.015); }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .badge-published { background: rgba(39,174,96,0.12); color: var(--green-dark); }
+    .badge-draft { background: rgba(138,136,128,0.15); color: var(--gray-600); }
+    .badge-red { background: rgba(192,57,43,0.1); color: var(--red); }
+
+    /* ── ACTIONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: 0.15s; font-family: var(--font-sans); }
+    .btn-red { background: var(--red); color: var(--white); }
+    .btn-red:hover { background: var(--red-dark); }
+    .btn-green { background: var(--green); color: var(--white); }
+    .btn-green:hover { background: var(--green-dark); }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted); }
+    .btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+    .btn-ghost { background: transparent; color: var(--text-muted); padding: 6px 10px; }
+    .btn-ghost:hover { color: var(--red); background: rgba(192,57,43,0.06); }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn-navy { background: var(--navy); color: var(--white); }
+    .btn-navy:hover { background: var(--navy-mid); }
+
+    /* ── ARTICLES LIST ── */
+    .articles-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-select { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--font-sans); outline: none; background: var(--white); }
+    .filter-select:focus { border-color: var(--red); }
+    .search-input { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--font-sans); outline: none; width: 220px; }
+    .search-input:focus { border-color: var(--red); }
+    .article-title-cell { font-weight: 600; color: var(--navy); max-width: 340px; }
+    .article-title-cell small { display: block; font-size: 11px; color: var(--gray-400); font-weight: 400; margin-top: 1px; font-family: monospace; }
+    .action-btns { display: flex; gap: 4px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+
+    /* ── EDITOR ── */
+    .editor-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+    .editor-main { display: flex; flex-direction: column; gap: 16px; }
+    .editor-sidebar-col { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 24px; }
+    .editor-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .editor-card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--navy); background: var(--off-white); }
+    .editor-card-body { padding: 16px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-group label { font-size: 12px; font-weight: 600; color: var(--navy); letter-spacing: 0.3px; }
+    .field-group input, .field-group select, .field-group textarea {
+      padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-size: 14px; font-family: var(--font-sans); outline: none; transition: 0.15s; background: var(--white); color: var(--text);
+    }
+    .field-group input:focus, .field-group select:focus, .field-group textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(192,57,43,0.08); }
+    .field-hint { font-size: 11px; color: var(--gray-400); }
+    #field-title { font-size: 18px; font-weight: 700; font-family: var(--font-serif); }
+    #field-subtitle { font-size: 14px; }
+
+    /* Rich editor toolbar */
+    .rich-toolbar {
+      display: flex; gap: 2px; padding: 8px; border: 1.5px solid var(--border);
+      border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; background: var(--off-white);
+      flex-wrap: wrap; align-items: center;
+    }
+    .rt-btn {
+      padding: 5px 9px; border: 1px solid transparent; border-radius: 4px;
+      font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted);
+      transition: 0.1s; font-family: var(--font-sans); font-weight: 600;
+    }
+    .rt-btn:hover { background: var(--white); border-color: var(--border); color: var(--navy); }
+    .rt-btn.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+    .rt-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+    .rt-select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; background: var(--white); cursor: pointer; outline: none; font-family: var(--font-sans); }
+
+    #rich-editor {
+      min-height: 400px; padding: 20px; border: 1.5px solid var(--border);
+      border-radius: 0 0 var(--radius) var(--radius); outline: none;
+      font-size: 16px; line-height: 1.75; color: var(--text); background: var(--white);
+      font-family: Georgia, serif;
+    }
+    #rich-editor:focus { border-color: var(--red); }
+    #rich-editor h2 { font-family: var(--font-serif); font-size: 22px; font-weight: 700; margin: 1.4em 0 0.5em; color: var(--navy); }
+    #rich-editor h3 { font-family: var(--font-serif); font-size: 18px; font-weight: 700; margin: 1.2em 0 0.4em; color: var(--navy); }
+    #rich-editor blockquote { border-left: 4px solid var(--gold); padding: 12px 20px; background: var(--off-white); margin: 1em 0; font-style: italic; color: var(--gray-600); }
+    #rich-editor ul, #rich-editor ol { padding-left: 24px; margin: 0.8em 0; }
+    #rich-editor li { margin-bottom: 4px; }
+    #rich-editor a { color: var(--red); }
+    #rich-editor strong { font-weight: 700; color: var(--navy); }
+    #rich-editor p { margin-bottom: 1em; }
+
+    /* Emoji picker */
+    .emoji-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+    .emoji-btn { font-size: 22px; cursor: pointer; padding: 6px; border-radius: 4px; border: 2px solid transparent; transition: 0.1s; }
+    .emoji-btn:hover { background: var(--gray-100); }
+    .emoji-btn.selected { border-color: var(--red); background: rgba(192,57,43,0.08); }
+
+    /* ── SETTINGS ── */
+    .settings-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+    .settings-section-header { padding: 14px 20px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 15px; color: var(--navy); background: var(--off-white); display: flex; align-items: center; gap: 8px; }
+    .settings-section-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+    .settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .success-msg { color: var(--green-dark); font-size: 13px; font-weight: 600; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      background: var(--navy); color: var(--white); padding: 12px 20px;
+      border-radius: var(--radius); font-size: 13px; font-weight: 600;
+      box-shadow: var(--shadow); transform: translateY(80px); opacity: 0;
+      transition: 0.25s ease; pointer-events: none;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.error { background: var(--red); }
+    #toast.success { background: var(--green-dark); }
+
+    /* ── MODAL ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: var(--white); border-radius: 10px; padding: 28px; width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+    .modal-body { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .editor-layout { grid-template-columns: 1fr; }
+      .editor-sidebar-col { position: static; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .page { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN VIEW -->
+<div id="view-login" class="view active">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">RBC</div>
+      <div>
+        <div class="login-logo-text">Redmont Broadcasting Co.</div>
+        <div class="login-logo-sub">Admin Panel</div>
+      </div>
+    </div>
+    <h1 class="login-title">Welcome back</h1>
+    <p class="login-sub">Sign in to manage articles and site content.</p>
+    <form id="login-form">
+      <div class="field">
+        <label>Username</label>
+        <input id="login-username" type="text" autocomplete="username" placeholder="admin" required />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required />
+      </div>
+      <button class="btn-primary" type="submit" id="login-btn" onclick="handleLogin(event)">Sign In</button>
+      <div class="error-msg" id="login-error"></div>
+    </form>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--gray-400);text-align:center;">
+      <a href="/" style="color:var(--gray-400);">← Back to website</a>
+    </div>
+  </div>
+</div>
+
+<!-- SHELL (sidebar + content) -->
+<div id="view-shell" class="view">
+  <!-- Sidebar nav -->
+  <nav class="sidebar-nav">
+    <div class="snav-logo">
+      <div class="snav-logo-icon">RBC</div>
+      <div class="snav-logo-name">Redmont Broadcasting</div>
+      <div class="snav-logo-sub">Admin Panel</div>
+    </div>
+
+    <div class="snav-section">Content</div>
+    <div class="snav-link active" data-page="dashboard"><span class="snav-icon">📊</span> Dashboard</div>
+    <div class="snav-link" data-page="articles"><span class="snav-icon">📰</span> Articles</div>
+    <div class="snav-link" data-page="new-article"><span class="snav-icon">✏️</span> Write Article</div>
+
+    <div class="snav-section">Site</div>
+    <div class="snav-link" data-page="bookings"><span class="snav-icon">📢</span> Ad Bookings</div>
+    <div class="snav-link" data-page="settings"><span class="snav-icon">⚙️</span> Settings &amp; Account</div>
+    <div class="snav-link" onclick="window.open('/', '_blank')"><span class="snav-icon">🌐</span> View Website</div>
+
+    <div class="snav-user">
+      <div class="snav-user-name" id="nav-display-name">—</div>
+      <div class="snav-user-role">Administrator</div>
+      <div class="snav-logout" onclick="logout()">Sign out →</div>
+    </div>
+  </nav>
+
+  <!-- Main area -->
+  <div class="main-content">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub">Welcome back — here's what's happening with RBC.</div>
+        </div>
+        <button class="btn btn-red" onclick="navTo('new-article')">✏️ Write Article</button>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-card__icon">📰</div><div class="stat-card__num" id="stat-total">—</div><div class="stat-card__label">Total Articles</div></div>
+        <div class="stat-card"><div class="stat-card__icon">✅</div><div class="stat-card__num" id="stat-published">—</div><div class="stat-card__label">Published</div></div>
+        <div class="stat-card"><div class="stat-card__icon">📝</div><div class="stat-card__num" id="stat-draft">—</div><div class="stat-card__label">Drafts</div></div>
+        <div class="stat-card"><div class="stat-card__icon">🏷️</div><div class="stat-card__num" id="stat-categories">—</div><div class="stat-card__label">Categories</div></div>
+      </div>
+
+      <div class="recent-table">
+        <div class="table-header">Recent Articles</div>
+        <table>
+          <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <tbody id="dash-recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ARTICLES PAGE -->
+    <div class="page" id="page-articles">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Articles</div>
+          <div class="page-sub">Manage all your published and draft articles.</div>
+        </div>
+        <button class="btn btn-red" onclick="navTo('new-article')">✏️ Write Article</button>
+      </div>
+
+      <div class="articles-toolbar">
+        <input class="search-input" id="article-search" placeholder="🔍 Search articles…" oninput="filterArticles()" />
+        <select class="filter-select" id="article-filter-status" onchange="filterArticles()">
+          <option value="">All Statuses</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+        </select>
+        <select class="filter-select" id="article-filter-cat" onchange="filterArticles()">
+          <option value="">All Categories</option>
+          <option>Politics</option><option>Economy</option><option>Law &amp; Justice</option>
+          <option>Community</option><option>Crime</option><option>Sports</option>
+          <option>Elections</option><option>Opinion</option><option>Uncategorised</option>
+        </select>
+      </div>
+
+      <div class="recent-table">
+        <table>
+          <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="articles-tbody"></tbody>
+        </table>
+        <div id="articles-empty" class="empty-state" style="display:none;">
+          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-title">No articles yet</div>
+          <p>Write your first article to get started.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW / EDIT ARTICLE PAGE -->
+    <div class="page" id="page-new-article">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="editor-page-title">Write Article</div>
+          <div class="page-sub">Write and publish to the RBC website.</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="navTo('articles')">Cancel</button>
+          <button class="btn btn-outline" onclick="saveArticle('draft')" id="btn-save-draft">Save Draft</button>
+          <button class="btn btn-green" onclick="saveArticle('published')" id="btn-publish">Publish →</button>
+        </div>
+      </div>
+
+      <div class="editor-layout">
+        <div class="editor-main">
+          <!-- Title + subtitle -->
+          <div class="editor-card">
+            <div class="editor-card-body" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="field-group">
+                <label>Headline *</label>
+                <input id="field-title" type="text" placeholder="Write your headline here…" />
+              </div>
+              <div class="field-group">
+                <label>Subtitle / Deck</label>
+                <input id="field-subtitle" type="text" placeholder="A brief summary that appears under the headline…" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Rich editor -->
+          <div class="editor-card">
+            <div class="editor-card-header">Article Body</div>
+            <div class="editor-card-body" style="padding:0;">
+              <div class="rich-toolbar" id="rich-toolbar">
+                <select class="rt-select" onchange="execBlock(this.value); this.value=''" >
+                  <option value="">Paragraph</option>
+                  <option value="h2">Heading 2</option>
+                  <option value="h3">Heading 3</option>
+                  <option value="blockquote">Block Quote</option>
+                </select>
+                <div class="rt-sep"></div>
+                <button class="rt-btn" title="Bold" onmousedown="e(event,'bold')"><b>B</b></button>
+                <button class="rt-btn" title="Italic" onmousedown="e(event,'italic')"><i>I</i></button>
+                <button class="rt-btn" title="Underline" onmousedown="e(event,'underline')"><u>U</u></button>
+                <button class="rt-btn" title="Strikethrough" onmousedown="e(event,'strikeThrough')"><s>S</s></button>
+                <div class="rt-sep"></div>
+                <button class="rt-btn" title="Bullet List" onmousedown="e(event,'insertUnorderedList')">• List</button>
+                <button class="rt-btn" title="Numbered List" onmousedown="e(event,'insertOrderedList')">1. List</button>
+                <div class="rt-sep"></div>
+                <button class="rt-btn" title="Link" onmousedown="insertLink(event)">🔗</button>
+                <button class="rt-btn" title="Remove formatting" onmousedown="e(event,'removeFormat')">✕ Format</button>
+              </div>
+              <div id="rich-editor" contenteditable="true" spellcheck="true" data-placeholder="Start writing your article… Use the toolbar above to format text, add headings, and create lists."></div>
+            </div>
+          </div>
+
+          <!-- Image caption -->
+          <div class="editor-card">
+            <div class="editor-card-header">Hero Image</div>
+            <div class="editor-card-body" style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div id="hero-preview" style="width:80px;height:80px;background:var(--navy-mid);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;">📰</div>
+                <div style="flex:1;">
+                  <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">Pick an emoji to represent this article's hero section, or upload an image.</p>
+                  <div class="emoji-grid" id="emoji-grid"></div>
+                </div>
+              </div>
+              <div class="field-group">
+                <label>Image Caption (optional)</label>
+                <input id="field-caption" type="text" placeholder="Photo description or credit…" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor sidebar -->
+        <div class="editor-sidebar-col">
+          <div class="editor-card">
+            <div class="editor-card-header">Publish</div>
+            <div class="editor-card-body" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="field-group">
+                <label>Status</label>
+                <select id="field-status">
+                  <option value="draft">Draft (not visible)</option>
+                  <option value="published">Published (live)</option>
+                </select>
+              </div>
+              <div id="article-slug-display" style="font-size:11px;color:var(--gray-400);font-family:monospace;word-break:break-all;padding:6px 8px;background:var(--off-white);border-radius:4px;"></div>
+              <button class="btn btn-green" style="width:100%;justify-content:center;" onclick="saveArticle('published')">🚀 Publish Now</button>
+              <button class="btn btn-outline" style="width:100%;justify-content:center;" onclick="saveArticle('draft')">💾 Save Draft</button>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <div class="editor-card-header">Category &amp; Tags</div>
+            <div class="editor-card-body" style="display:flex;flex-direction:column;gap:12px;">
+              <div class="field-group">
+                <label>Category</label>
+                <select id="field-category">
+                  <option>Politics</option>
+                  <option>Economy</option>
+                  <option>Law &amp; Justice</option>
+                  <option>Community</option>
+                  <option>Crime</option>
+                  <option>Sports</option>
+                  <option>Elections</option>
+                  <option>Opinion</option>
+                  <option>Uncategorised</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>Tags</label>
+                <input id="field-tags" type="text" placeholder="DemocracyCraft, Redmont, Politics…" />
+                <div class="field-hint">Separate with commas</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="editor-card">
+            <div class="editor-card-header">Article Info</div>
+            <div class="editor-card-body" style="font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:6px;">
+              <div>Author: <strong id="editor-author-label">—</strong></div>
+              <div id="editor-dates"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOOKINGS PAGE -->
+    <div class="page" id="page-bookings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ad Bookings</div>
+          <div class="page-sub">Enquiries submitted via the Advertise page.</div>
+        </div>
+        <button class="btn btn-outline" onclick="loadBookings()">↻ Refresh</button>
+      </div>
+      <div id="bookings-list"></div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Settings &amp; Account</div>
+          <div class="page-sub">Manage your profile and account security.</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-header">👤 Profile</div>
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="field-group">
+              <label>Username</label>
+              <input id="set-username" type="text" disabled style="background:var(--off-white);color:var(--gray-400);" />
+            </div>
+            <div class="field-group">
+              <label>Display Name (byline)</label>
+              <input id="set-displayname" type="text" placeholder="Your Name" />
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-navy" onclick="saveProfile()">Save Profile</button>
+            <span class="success-msg" id="profile-success" style="margin-left:10px;display:none;">Saved!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-header">🔒 Change Password</div>
+        <div class="settings-section-body">
+          <div class="settings-row">
+            <div class="field-group">
+              <label>Current Password</label>
+              <input id="set-current-pw" type="password" placeholder="••••••••" />
+            </div>
+            <div></div>
+          </div>
+          <div class="settings-row">
+            <div class="field-group">
+              <label>New Password</label>
+              <input id="set-new-pw" type="password" placeholder="Min. 6 characters" />
+            </div>
+            <div class="field-group">
+              <label>Confirm New Password</label>
+              <input id="set-confirm-pw" type="password" placeholder="Repeat new password" />
+            </div>
+          </div>
+          <div>
+            <button class="btn btn-navy" onclick="changePassword()">Change Password</button>
+            <span id="pw-success" style="margin-left:10px;font-size:13px;font-weight:600;display:none;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-header">📡 Breaking News &amp; Ticker</div>
+        <div class="settings-section-body">
+          <div class="field-group">
+            <label>Breaking News Banner</label>
+            <input id="set-breaking" type="text" placeholder="Leave blank to hide the banner — e.g. Senate votes 7–3 on the Infrastructure Act…" />
+            <div class="field-hint">Shown in the red banner below the header. Leave empty to hide it.</div>
+          </div>
+          <div class="field-group">
+            <label>Top Bar Ticker Items</label>
+            <textarea id="set-ticker" style="min-height:100px;" placeholder="One item per line, e.g.&#10;⚖️ Senate session opens on landmark bill&#10;📈 Economy grows 12% this quarter"></textarea>
+            <div class="field-hint">Each line becomes one ticker item. Leave blank to hide the ticker.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button class="btn btn-navy" onclick="saveTickerSettings()">Save Ticker Settings</button>
+            <span id="ticker-success" style="font-size:13px;font-weight:600;color:var(--green-dark);display:none;">Saved!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-header">🌐 Website Links</div>
+        <div class="settings-section-body" style="font-size:14px;color:var(--text-muted);gap:8px;">
+          <div><a href="/" target="_blank" style="color:var(--red);">View Homepage →</a></div>
+          <div><a href="/advertise.html" target="_blank" style="color:var(--red);">Advertise Page →</a></div>
+          <div><a href="/submit.html" target="_blank" style="color:var(--red);">Submit a Tip →</a></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /view-shell -->
+
+<!-- Delete confirm modal -->
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal">
+    <div class="modal-title">Delete Article?</div>
+    <div class="modal-body" id="delete-modal-body">This action cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-red" id="delete-confirm-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentUser = null;
+let allArticles = [];
+let editingArticleId = null;
+let selectedEmoji = '📰';
+
+const EMOJIS = ['📰','🏛️','⚖️','📈','🏘️','🗳️','🚨','⚽','🌍','🏗️','📊','💰','🎉','🏫','🌱','🤝','📜','🔍','💡','🛒','🎖️','⚡','🏆','📋'];
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function init() {
+  // Attach login handler defensively — button onclick is primary, this is backup
+  try { document.getElementById('login-form').addEventListener('submit', handleLogin); } catch(e) {}
+
+  // Check if already logged in
+  try {
+    const r = await fetch('/api/me');
+    if (r.ok) {
+      currentUser = await r.json();
+      showShell();
+    }
+  } catch {}
+})();
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function handleLogin(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  if (btn.disabled) return; // prevent double-fire
+  const errEl = document.getElementById('login-error');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.textContent = '';
+  try {
+    let r, data;
+    try {
+      r = await fetch('/api/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username: document.getElementById('login-username').value, password: document.getElementById('login-password').value })
+      });
+      data = await r.json();
+    } catch (networkErr) {
+      errEl.textContent = 'Cannot reach server. Make sure "node server.js" is running.';
+      return;
+    }
+    if (!r.ok) { errEl.textContent = data.error || 'Invalid username or password'; return; }
+    currentUser = data.user;
+    showShell();
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  currentUser = null;
+  document.getElementById('view-shell').classList.remove('active');
+  document.getElementById('view-login').classList.add('active');
+}
+
+function showShell() {
+  document.getElementById('view-login').classList.remove('active');
+  document.getElementById('view-shell').classList.add('active');
+  document.getElementById('nav-display-name').textContent = currentUser.displayName;
+  document.getElementById('set-username').value = currentUser.username;
+  document.getElementById('set-displayname').value = currentUser.displayName;
+  document.getElementById('editor-author-label').textContent = currentUser.displayName;
+  navTo('dashboard');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function navTo(page) {
+  document.querySelectorAll('.snav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pageEl = document.getElementById(`page-${page === 'new-article' ? 'new-article' : page}`);
+  if (pageEl) pageEl.classList.add('active');
+
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'articles') loadArticlesList();
+  if (page === 'new-article') { editingArticleId = null; resetEditor(); }
+  if (page === 'bookings') loadBookings();
+  if (page === 'settings') loadSettings();
+}
+
+document.querySelectorAll('.snav-link[data-page]').forEach(l => l.addEventListener('click', () => navTo(l.dataset.page)));
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const r = await fetch('/api/articles');
+  allArticles = await r.json();
+  const published = allArticles.filter(a => a.status === 'published');
+  const drafts = allArticles.filter(a => a.status === 'draft');
+  const cats = new Set(allArticles.map(a => a.category));
+  document.getElementById('stat-total').textContent = allArticles.length;
+  document.getElementById('stat-published').textContent = published.length;
+  document.getElementById('stat-draft').textContent = drafts.length;
+  document.getElementById('stat-categories').textContent = cats.size;
+  const tbody = document.getElementById('dash-recent-tbody');
+  const recent = allArticles.slice(0, 8);
+  tbody.innerHTML = recent.length ? recent.map(a => `
+    <tr>
+      <td class="article-title-cell">${esc(a.title)}</td>
+      <td><span class="badge badge-red">${esc(a.category)}</span></td>
+      <td><span class="badge ${a.status === 'published' ? 'badge-published' : 'badge-draft'}">${a.status}</span></td>
+      <td style="font-size:12px;color:var(--text-muted);">${fmtDate(a.publishedAt || a.createdAt)}</td>
+      <td><div class="action-btns"><button class="btn btn-ghost btn-sm" onclick="editArticle('${a.id}')">Edit</button></div></td>
+    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">No articles yet.</td></tr>';
+}
+
+// ── ARTICLES LIST ─────────────────────────────────────────────────────────────
+async function loadArticlesList() {
+  const r = await fetch('/api/articles');
+  allArticles = await r.json();
+  renderArticlesTable(allArticles);
+}
+
+function filterArticles() {
+  const q = document.getElementById('article-search').value.toLowerCase();
+  const status = document.getElementById('article-filter-status').value;
+  const cat = document.getElementById('article-filter-cat').value;
+  const filtered = allArticles.filter(a => {
+    const matchQ = !q || a.title.toLowerCase().includes(q);
+    const matchS = !status || a.status === status;
+    const matchC = !cat || a.category === cat;
+    return matchQ && matchS && matchC;
+  });
+  renderArticlesTable(filtered);
+}
+
+function renderArticlesTable(articles) {
+  const tbody = document.getElementById('articles-tbody');
+  const empty = document.getElementById('articles-empty');
+  if (!articles.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = articles.map(a => `
+    <tr>
+      <td class="article-title-cell">
+        ${esc(a.title)}
+        <small>/article/${esc(a.slug)}</small>
+      </td>
+      <td><span class="badge badge-red">${esc(a.category)}</span></td>
+      <td style="font-size:12px;">${esc(a.author)}</td>
+      <td><span class="badge ${a.status === 'published' ? 'badge-published' : 'badge-draft'}">${a.status}</span></td>
+      <td style="font-size:12px;color:var(--text-muted);">${fmtDate(a.publishedAt || a.createdAt)}</td>
+      <td>
+        <div class="action-btns">
+          ${a.status === 'published' ? `<a class="btn btn-ghost btn-sm" href="/article/${a.slug}" target="_blank">View</a>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="editArticle('${a.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="confirmDelete('${a.id}','${esc(a.title)}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+// ── EDITOR ────────────────────────────────────────────────────────────────────
+function resetEditor() {
+  document.getElementById('editor-page-title').textContent = 'Write Article';
+  document.getElementById('field-title').value = '';
+  document.getElementById('field-subtitle').value = '';
+  document.getElementById('rich-editor').innerHTML = '';
+  document.getElementById('field-category').value = 'Politics';
+  document.getElementById('field-tags').value = '';
+  document.getElementById('field-status').value = 'draft';
+  document.getElementById('field-caption').value = '';
+  document.getElementById('article-slug-display').textContent = '';
+  document.getElementById('editor-dates').textContent = '';
+  document.getElementById('editor-author-label').textContent = currentUser.displayName;
+  setEmoji('📰');
+}
+
+async function editArticle(id) {
+  const r = await fetch(`/api/articles/${id}`);
+  if (!r.ok) return toast('Article not found', 'error');
+  const a = await r.json();
+  editingArticleId = id;
+  document.getElementById('editor-page-title').textContent = 'Edit Article';
+  document.getElementById('field-title').value = a.title;
+  document.getElementById('field-subtitle').value = a.subtitle || '';
+  document.getElementById('rich-editor').innerHTML = a.body || '';
+  document.getElementById('field-category').value = a.category;
+  document.getElementById('field-tags').value = (a.tags || []).join(', ');
+  document.getElementById('field-status').value = a.status;
+  document.getElementById('field-caption').value = a.imageCaption || '';
+  document.getElementById('article-slug-display').textContent = `/article/${a.slug}`;
+  document.getElementById('editor-author-label').textContent = a.author;
+  document.getElementById('editor-dates').innerHTML = `Created: ${fmtDate(a.createdAt)}<br>Updated: ${fmtDate(a.updatedAt)}`;
+  setEmoji(a.heroEmoji || '📰');
+  navTo('new-article');
+  document.getElementById('page-new-article').classList.add('active');
+}
+
+async function saveArticle(statusOverride) {
+  const title = document.getElementById('field-title').value.trim();
+  if (!title) { toast('Please enter a headline', 'error'); document.getElementById('field-title').focus(); return; }
+  const body = {
+    title,
+    subtitle: document.getElementById('field-subtitle').value.trim(),
+    body: document.getElementById('rich-editor').innerHTML,
+    category: document.getElementById('field-category').value,
+    tags: document.getElementById('field-tags').value,
+    status: statusOverride || document.getElementById('field-status').value,
+    heroEmoji: selectedEmoji,
+    imageCaption: document.getElementById('field-caption').value.trim()
+  };
+  const url = editingArticleId ? `/api/articles/${editingArticleId}` : '/api/articles';
+  const method = editingArticleId ? 'PUT' : 'POST';
+  const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) return toast(data.error || 'Save failed', 'error');
+  editingArticleId = data.article.id;
+  document.getElementById('article-slug-display').textContent = `/article/${data.article.slug}`;
+  document.getElementById('editor-page-title').textContent = 'Edit Article';
+  toast(statusOverride === 'published' ? '🚀 Article published!' : '💾 Draft saved', 'success');
+}
+
+function updateSlugPreview() {
+  const slug = document.getElementById('field-title').value.toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-').slice(0,80);
+  if (!editingArticleId) document.getElementById('article-slug-display').textContent = slug ? `/article/${slug}` : '';
+}
+
+// ── EMOJI ─────────────────────────────────────────────────────────────────────
+function buildEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = EMOJIS.map(e => `<span class="emoji-btn${e === selectedEmoji ? ' selected' : ''}" onclick="setEmoji('${e}')">${e}</span>`).join('');
+}
+
+function setEmoji(emoji) {
+  selectedEmoji = emoji;
+  document.getElementById('hero-preview').textContent = emoji;
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent === emoji));
+}
+
+// ── RICH EDITOR ───────────────────────────────────────────────────────────────
+function e(event, cmd) { event.preventDefault(); document.execCommand(cmd, false, null); }
+
+function execBlock(tag) {
+  if (!tag) return;
+  const editor = document.getElementById('rich-editor');
+  editor.focus();
+  if (tag === 'blockquote') {
+    document.execCommand('formatBlock', false, 'blockquote');
+  } else {
+    document.execCommand('formatBlock', false, tag);
+  }
+}
+
+function insertLink(event) {
+  event.preventDefault();
+  const url = prompt('Enter URL:');
+  if (url) document.execCommand('createLink', false, url);
+}
+
+// Placeholder for empty editor
+document.getElementById('rich-editor').addEventListener('input', function() {
+  this.dataset.empty = this.innerHTML === '' || this.innerHTML === '<br>';
+});
+
+// ── BOOKINGS ──────────────────────────────────────────────────────────────────
+const STATUS_LABELS = { new: '🔵 New', contacted: '🟡 Contacted', confirmed: '🟢 Confirmed', declined: '🔴 Declined' };
+
+async function loadBookings() {
+  const el = document.getElementById('bookings-list');
+  el.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Loading…</p>';
+  try {
+    const r = await fetch('/api/bookings');
+    if (!r.ok) throw new Error('Failed');
+    const bookings = await r.json();
+    if (!bookings.length) {
+      el.innerHTML = '<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:40px;text-align:center;color:var(--text-muted);">No bookings yet. They\'ll appear here once someone submits the form.</div>';
+      return;
+    }
+    el.innerHTML = `<div style="display:flex;flex-direction:column;gap:14px;">` +
+      bookings.map(b => `
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:2px;">${esc(b.business)} <span style="font-weight:400;font-size:13px;color:var(--text-muted);">by ${esc(b.username)}</span></div>
+              <div style="font-size:12px;color:var(--gray-400);margin-bottom:8px;">${new Date(b.submittedAt).toLocaleString('en-GB')} · ${esc(b.package)}</div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;max-width:600px;line-height:1.5;">${esc(b.content)}</div>
+              ${b.contact ? `<div style="font-size:12px;color:var(--gray-400);">Contact: ${esc(b.contact)}</div>` : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:160px;">
+              <select onchange="updateBookingStatus('${b.id}', this.value)" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:var(--font-sans);cursor:pointer;outline:none;">
+                ${Object.entries(STATUS_LABELS).map(([v,l]) => `<option value="${v}"${b.status===v?' selected':''}>${l}</option>`).join('')}
+              </select>
+              <button class="btn btn-outline" style="font-size:12px;color:var(--red);border-color:var(--red);" onclick="deleteBooking('${b.id}', this)">🗑 Delete</button>
+            </div>
+          </div>
+        </div>`).join('') + `</div>`;
+  } catch {
+    el.innerHTML = '<p style="color:var(--red);padding:20px;">Failed to load bookings.</p>';
+  }
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function updateBookingStatus(id, status) {
+  await fetch(`/api/bookings/${id}`, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+}
+
+async function deleteBooking(id, btn) {
+  if (!confirm('Delete this booking enquiry?')) return;
+  btn.disabled = true;
+  const r = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+  if (r.ok) loadBookings();
+  else { btn.disabled = false; alert('Delete failed'); }
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+async function loadSettings() {
+  document.getElementById('set-username').value = currentUser.username;
+  document.getElementById('set-displayname').value = currentUser.displayName;
+  try {
+    const r = await fetch('/api/settings');
+    const s = await r.json();
+    document.getElementById('set-breaking').value = s.breakingNews || '';
+    document.getElementById('set-ticker').value = (s.ticker || []).join('\n');
+  } catch {}
+}
+
+async function saveTickerSettings() {
+  const breakingNews = document.getElementById('set-breaking').value.trim();
+  const ticker = document.getElementById('set-ticker').value
+    .split('\n').map(l => l.trim()).filter(Boolean);
+  const r = await fetch('/api/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ breakingNews, ticker })
+  });
+  if (!r.ok) return toast('Save failed', 'error');
+  const s = document.getElementById('ticker-success');
+  s.style.display = 'inline';
+  setTimeout(() => s.style.display = 'none', 2500);
+  toast('Ticker settings saved', 'success');
+}
+
+async function saveProfile() {
+  const displayName = document.getElementById('set-displayname').value.trim();
+  const r = await fetch('/api/update-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ displayName }) });
+  const d = await r.json();
+  if (!r.ok) return toast(d.error, 'error');
+  currentUser.displayName = d.displayName;
+  document.getElementById('nav-display-name').textContent = d.displayName;
+  document.getElementById('editor-author-label').textContent = d.displayName;
+  const s = document.getElementById('profile-success');
+  s.style.display = 'inline'; setTimeout(() => s.style.display = 'none', 2500);
+  toast('Profile saved', 'success');
+}
+
+async function changePassword() {
+  const current = document.getElementById('set-current-pw').value;
+  const newPw = document.getElementById('set-new-pw').value;
+  const confirm = document.getElementById('set-confirm-pw').value;
+  const msg = document.getElementById('pw-success');
+  if (newPw !== confirm) { msg.textContent = 'Passwords do not match'; msg.style.color = 'var(--red)'; msg.style.display = 'inline'; return; }
+  const r = await fetch('/api/change-password', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ currentPassword: current, newPassword: newPw }) });
+  const d = await r.json();
+  if (!r.ok) { msg.textContent = d.error; msg.style.color = 'var(--red)'; msg.style.display = 'inline'; return; }
+  msg.textContent = '✓ Password changed successfully';
+  msg.style.color = 'var(--green-dark)';
+  msg.style.display = 'inline';
+  document.getElementById('set-current-pw').value = '';
+  document.getElementById('set-new-pw').value = '';
+  document.getElementById('set-confirm-pw').value = '';
+  setTimeout(() => msg.style.display = 'none', 3000);
+}
+
+// ── DELETE MODAL ──────────────────────────────────────────────────────────────
+let pendingDeleteId = null;
+function confirmDelete(id, title) {
+  pendingDeleteId = id;
+  document.getElementById('delete-modal-body').textContent = `Delete "${title}"? This cannot be undone.`;
+  document.getElementById('delete-modal').classList.add('open');
+  document.getElementById('delete-confirm-btn').onclick = async () => {
+    await fetch(`/api/articles/${pendingDeleteId}`, { method: 'DELETE' });
+    closeDeleteModal();
+    toast('Article deleted', 'success');
+    loadArticlesList();
+  };
+}
+function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); pendingDeleteId = null; }
+document.getElementById('delete-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDeleteModal(); });
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3000);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(str) { return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
+</script>
+</body>
+</html>
