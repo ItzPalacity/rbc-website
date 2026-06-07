@@ -547,7 +547,42 @@ SECTION_PAGES.forEach(p => {
 });
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin', 'index.html')));
 app.get('/admin/*', (req, res) => res.sendFile(path.join(__dirname, 'admin', 'index.html')));
-app.get('/article/:slug', (req, res) => res.sendFile(path.join(__dirname, 'article.html')));
+app.get('/article/:slug', (req, res) => {
+  // Serve article.html with Open Graph meta tags injected for Discord/social embeds
+  const articles = readJSON(ARTICLES_FILE);
+  const article = articles.find(a => a.slug === req.params.slug && a.status === 'published');
+  if (!article) return res.sendFile(path.join(__dirname, 'article.html'));
+
+  // Build plain-text description from subtitle or body
+  let description = (article.subtitle || '').trim();
+  if (!description && article.body) {
+    description = article.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
+    if (article.body.replace(/<[^>]+>/g, '').trim().length > 220) description += '…';
+  }
+  const esc = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const siteUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+  const articleUrl = `${siteUrl}/article/${article.slug}`;
+  const imageUrl = article.heroImage ? `${siteUrl}${article.heroImage}` : '';
+
+  const ogTags = `
+  <!-- Open Graph / Discord embed -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Redmont Broadcasting Company" />
+  <meta property="og:url" content="${articleUrl}" />
+  <meta property="og:title" content="${esc(article.title)}" />
+  <meta property="og:description" content="${esc(description)}" />
+  ${imageUrl ? `<meta property="og:image" content="${imageUrl}" />` : ''}
+  <meta name="description" content="${esc(description)}" />
+  <meta name="twitter:card" content="${imageUrl ? 'summary_large_image' : 'summary'}" />
+  <meta name="twitter:title" content="${esc(article.title)}" />
+  <meta name="twitter:description" content="${esc(description)}" />
+  ${imageUrl ? `<meta name="twitter:image" content="${imageUrl}" />` : ''}`;
+
+  let html = fs.readFileSync(path.join(__dirname, 'article.html'), 'utf8');
+  html = html.replace('<title>Loading… — RBC</title>', `<title>${esc(article.title)} — RBC</title>`);
+  html = html.replace('</head>', ogTags + '\n</head>');
+  res.send(html);
+});
 app.get('/reset-password', (req, res) => res.sendFile(path.join(__dirname, 'reset-password.html')));
 
 app.listen(PORT, () => console.log(`RBC running at http://localhost:${PORT}`));
