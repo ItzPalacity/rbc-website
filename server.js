@@ -300,7 +300,7 @@ app.get('/api/articles/:idOrSlug', (req, res) => {
 });
 
 app.post('/api/articles', requireAdmin, (req, res) => {
-  const { title, subtitle, body, category, tags, status, heroEmoji, heroImage, imageCaption } = req.body;
+  const { title, subtitle, body, category, tags, status, heroEmoji, heroImage, heroImageFocus, imageCaption } = req.body;
   if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
   const articles = readJSON(ARTICLES_FILE);
   let slug = slugify(title);
@@ -318,6 +318,7 @@ app.post('/api/articles', requireAdmin, (req, res) => {
     status: status || 'draft',
     heroEmoji: heroEmoji || '📰',
     heroImage: heroImage || '',
+    heroImageFocus: heroImageFocus || null,
     imageCaption: imageCaption || '',
     author: req.session.user.displayName,
     authorUsername: req.session.user.username,
@@ -335,7 +336,7 @@ app.put('/api/articles/:id', requireAdmin, (req, res) => {
   const articles = readJSON(ARTICLES_FILE);
   const idx = articles.findIndex(a => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Article not found' });
-  const { title, subtitle, body, category, tags, status, heroEmoji, heroImage, imageCaption } = req.body;
+  const { title, subtitle, body, category, tags, status, heroEmoji, heroImage, heroImageFocus, imageCaption } = req.body;
   const existing = articles[idx];
   const wasPublished = existing.status === 'published';
   const now = new Date().toISOString();
@@ -354,6 +355,7 @@ app.put('/api/articles/:id', requireAdmin, (req, res) => {
     status: status || existing.status,
     heroEmoji: heroEmoji || existing.heroEmoji,
     heroImage: heroImage !== undefined ? heroImage : (existing.heroImage || ''),
+    heroImageFocus: heroImageFocus !== undefined ? heroImageFocus : (existing.heroImageFocus || null),
     imageCaption: imageCaption !== undefined ? imageCaption : existing.imageCaption,
     slug,
     updatedAt: now,

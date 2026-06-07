@@ -448,8 +448,15 @@
                   <span id="upload-status" style="font-size:12px;color:var(--text-muted);"></span>
                   <button class="btn btn-outline" id="btn-clear-image" style="font-size:12px;color:var(--red);border-color:var(--red);display:none;" onclick="clearHeroImage()">✕ Remove</button>
                 </div>
-                <div id="image-preview-wrap" style="display:none;">
-                  <img id="image-preview" src="" alt="Hero preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);" />
+                <div id="image-preview-wrap" style="display:none;position:relative;">
+                  <div style="position:relative;width:100%;height:180px;overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);cursor:crosshair;" onclick="setFocalPoint(event,'write')" title="Click to set focal point">
+                    <img id="image-preview" src="" alt="Hero preview" style="width:100%;height:100%;object-fit:cover;" />
+                    <div id="focal-dot" style="position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.9);border:2px solid #1a3a5c;box-shadow:0 0 0 2px rgba(0,0,0,0.35);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%;transition:left .15s,top .15s;"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:5px;display:flex;align-items:center;gap:6px;">
+                    <span>🎯</span><span>Click the image to set which part stays visible when cropped</span>
+                    <span id="focal-coords" style="margin-left:auto;font-family:monospace;background:var(--off-white);padding:2px 6px;border-radius:4px;"></span>
+                  </div>
                 </div>
               </div>
               <div style="font-size:12px;color:var(--gray-400);text-align:center;">— or pick an emoji —</div>
@@ -595,8 +602,15 @@
                   <span id="edit-upload-status" style="font-size:12px;color:var(--text-muted);"></span>
                   <button class="btn btn-outline" id="edit-btn-clear-image" style="font-size:12px;color:var(--red);border-color:var(--red);display:none;" onclick="clearEditHeroImage()">✕ Remove</button>
                 </div>
-                <div id="edit-image-preview-wrap" style="display:none;">
-                  <img id="edit-image-preview" src="" alt="Hero preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);" />
+                <div id="edit-image-preview-wrap" style="display:none;position:relative;">
+                  <div style="position:relative;width:100%;height:180px;overflow:hidden;border-radius:var(--radius);border:1px solid var(--border);cursor:crosshair;" onclick="setFocalPoint(event,'edit')" title="Click to set focal point">
+                    <img id="edit-image-preview" src="" alt="Hero preview" style="width:100%;height:100%;object-fit:cover;" />
+                    <div id="edit-focal-dot" style="position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.9);border:2px solid #d97706;box-shadow:0 0 0 2px rgba(0,0,0,0.35);transform:translate(-50%,-50%);pointer-events:none;left:50%;top:50%;transition:left .15s,top .15s;"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:5px;display:flex;align-items:center;gap:6px;">
+                    <span>🎯</span><span>Click the image to set which part stays visible when cropped</span>
+                    <span id="edit-focal-coords" style="margin-left:auto;font-family:monospace;background:var(--off-white);padding:2px 6px;border-radius:4px;"></span>
+                  </div>
                 </div>
               </div>
               <div style="font-size:12px;color:var(--gray-400);text-align:center;">— or pick an emoji —</div>
@@ -974,14 +988,39 @@ function resetEditor() {
 }
 
 let heroImageUrl = '';
+let heroImageFocus = { x: 50, y: 50 };
+
+function setFocalPoint(event, page) {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = Math.round(((event.clientX - rect.left) / rect.width) * 100);
+  const y = Math.round(((event.clientY - rect.top) / rect.height) * 100);
+  if (page === 'edit') {
+    editHeroImageFocus = { x, y };
+    document.getElementById('edit-focal-dot').style.left = x + '%';
+    document.getElementById('edit-focal-dot').style.top = y + '%';
+    document.getElementById('edit-image-preview').style.objectPosition = x + '% ' + y + '%';
+    document.getElementById('edit-focal-coords').textContent = x + '% ' + y + '%';
+  } else {
+    heroImageFocus = { x, y };
+    document.getElementById('focal-dot').style.left = x + '%';
+    document.getElementById('focal-dot').style.top = y + '%';
+    document.getElementById('image-preview').style.objectPosition = x + '% ' + y + '%';
+    document.getElementById('focal-coords').textContent = x + '% ' + y + '%';
+  }
+}
 
 function clearHeroImage() {
   heroImageUrl = '';
+  heroImageFocus = { x: 50, y: 50 };
   document.getElementById('image-preview-wrap').style.display = 'none';
   document.getElementById('image-preview').src = '';
+  document.getElementById('image-preview').style.objectPosition = '';
   document.getElementById('btn-clear-image').style.display = 'none';
   document.getElementById('upload-status').textContent = '';
   document.getElementById('field-image-upload').value = '';
+  document.getElementById('focal-dot').style.left = '50%';
+  document.getElementById('focal-dot').style.top = '50%';
+  document.getElementById('focal-coords').textContent = '';
 }
 
 async function handleImageUpload(event) {
@@ -996,7 +1035,12 @@ async function handleImageUpload(event) {
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Upload failed');
     heroImageUrl = data.url;
+    heroImageFocus = { x: 50, y: 50 };
     document.getElementById('image-preview').src = heroImageUrl;
+    document.getElementById('image-preview').style.objectPosition = '50% 50%';
+    document.getElementById('focal-dot').style.left = '50%';
+    document.getElementById('focal-dot').style.top = '50%';
+    document.getElementById('focal-coords').textContent = '50% 50%';
     document.getElementById('image-preview-wrap').style.display = 'block';
     document.getElementById('btn-clear-image').style.display = '';
     statusEl.textContent = '✓ Uploaded';
@@ -1045,9 +1089,20 @@ async function editArticle(id) {
   clearEditHeroImage();
   if (a.heroImage) {
     editHeroImageUrl = a.heroImage;
+    // Restore focal point
+    if (a.heroImageFocus) {
+      editHeroImageFocus = a.heroImageFocus;
+    } else {
+      editHeroImageFocus = { x: 50, y: 50 };
+    }
+    const fx = editHeroImageFocus.x, fy = editHeroImageFocus.y;
     document.getElementById('edit-image-preview').src = a.heroImage;
+    document.getElementById('edit-image-preview').style.objectPosition = fx + '% ' + fy + '%';
     document.getElementById('edit-image-preview-wrap').style.display = 'block';
     document.getElementById('edit-btn-clear-image').style.display = '';
+    document.getElementById('edit-focal-dot').style.left = fx + '%';
+    document.getElementById('edit-focal-dot').style.top = fy + '%';
+    document.getElementById('edit-focal-coords').textContent = fx + '% ' + fy + '%';
   }
   setEditEmoji(a.heroEmoji || '📰');
 
@@ -1068,6 +1123,7 @@ async function saveArticle(statusOverride) {
     status: statusOverride || document.getElementById('field-status').value,
     heroEmoji: selectedEmoji,
     heroImage: heroImageUrl || '',
+    heroImageFocus: heroImageUrl ? heroImageFocus : null,
     imageCaption: document.getElementById('field-caption').value.trim()
   };
   const url = editingArticleId ? `/api/articles/${editingArticleId}` : '/api/articles';
@@ -1101,6 +1157,7 @@ function setEmoji(emoji) {
 // ── EDIT PAGE — EMOJI & IMAGE ─────────────────────────────────────────────────
 let editSelectedEmoji = '📰';
 let editHeroImageUrl = '';
+let editHeroImageFocus = { x: 50, y: 50 };
 
 function buildEditEmojiGrid() {
   const grid = document.getElementById('edit-emoji-grid');
@@ -1116,11 +1173,16 @@ function setEditEmoji(emoji) {
 
 function clearEditHeroImage() {
   editHeroImageUrl = '';
+  editHeroImageFocus = { x: 50, y: 50 };
   document.getElementById('edit-image-preview-wrap').style.display = 'none';
   document.getElementById('edit-image-preview').src = '';
+  document.getElementById('edit-image-preview').style.objectPosition = '';
   document.getElementById('edit-btn-clear-image').style.display = 'none';
   document.getElementById('edit-upload-status').textContent = '';
   document.getElementById('edit-field-image-upload').value = '';
+  document.getElementById('edit-focal-dot').style.left = '50%';
+  document.getElementById('edit-focal-dot').style.top = '50%';
+  document.getElementById('edit-focal-coords').textContent = '';
 }
 
 async function handleEditImageUpload(event) {
@@ -1135,7 +1197,12 @@ async function handleEditImageUpload(event) {
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Upload failed');
     editHeroImageUrl = data.url;
+    editHeroImageFocus = { x: 50, y: 50 };
     document.getElementById('edit-image-preview').src = editHeroImageUrl;
+    document.getElementById('edit-image-preview').style.objectPosition = '50% 50%';
+    document.getElementById('edit-focal-dot').style.left = '50%';
+    document.getElementById('edit-focal-dot').style.top = '50%';
+    document.getElementById('edit-focal-coords').textContent = '50% 50%';
     document.getElementById('edit-image-preview-wrap').style.display = 'block';
     document.getElementById('edit-btn-clear-image').style.display = '';
     statusEl.textContent = '✓ Uploaded';
@@ -1165,6 +1232,7 @@ async function saveEditedArticle(statusOverride) {
     status: statusOverride || document.getElementById('edit-field-status').value,
     heroEmoji: editSelectedEmoji,
     heroImage: editHeroImageUrl || '',
+    heroImageFocus: editHeroImageUrl ? editHeroImageFocus : null,
     imageCaption: document.getElementById('edit-field-caption').value.trim()
   };
   const r = await fetch(`/api/articles/${editingArticleId}`, {
