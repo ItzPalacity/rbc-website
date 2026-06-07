@@ -77,12 +77,25 @@ if (process.env.ADMIN_PASSWORD) {
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
+const SESSION_SECRET = process.env.SESSION_SECRET || 'rbc-secret-change-in-production';
+if (!process.env.SESSION_SECRET) {
+  console.warn('[RBC] WARNING: SESSION_SECRET env var not set. Sessions will be invalidated on every restart. Set it in Railway Variables.');
+}
+
+const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
 app.use(session({
-  store: new FileStore({ path: SESSIONS_DIR, ttl: 86400, retries: 0, logFn: () => {} }),
-  secret: process.env.SESSION_SECRET || 'rbc-secret-change-in-production',
+  // ttl in seconds — 30 days so reader logins survive long periods without visiting
+  store: new FileStore({ path: SESSIONS_DIR, ttl: 30 * 24 * 60 * 60, retries: 0, logFn: () => {} }),
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 8 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' }
+  rolling: true, // Refresh cookie expiry on every request — keeps active users logged in
+  cookie: {
+    maxAge: THIRTY_DAYS, // 30 days for public readers
+    httpOnly: true,
+    sameSite: 'lax'
+  }
 }));
 
 // Image upload config
@@ -123,6 +136,8 @@ app.post('/api/login', (req, res) => {
   if (!user || user.role !== 'admin' || !bcrypt.compareSync(password, user.password))
     return res.status(401).json({ error: 'Invalid username or password' });
   req.session.user = { username: user.username, displayName: user.displayName, role: user.role };
+  // Admin sessions expire after 8 hours (shorter than public reader sessions)
+  req.session.cookie.maxAge = 8 * 60 * 60 * 1000;
   res.json({ ok: true, user: req.session.user });
 });
 
