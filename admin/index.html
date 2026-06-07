@@ -275,8 +275,9 @@
       <button class="btn-primary" type="submit" id="login-btn" onclick="handleLogin(event)">Sign In</button>
       <div class="error-msg" id="login-error"></div>
     </form>
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--gray-400);text-align:center;">
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--gray-400);text-align:center;display:flex;justify-content:space-between;">
       <a href="/" style="color:var(--gray-400);">← Back to website</a>
+      <a href="/reset-password" style="color:var(--gray-400);">Forgot password?</a>
     </div>
   </div>
 </div>
@@ -297,6 +298,7 @@
     <div class="snav-link" data-page="new-article"><span class="snav-icon">✏️</span> Write Article</div>
 
     <div class="snav-section">Site</div>
+    <div class="snav-link" data-page="readers"><span class="snav-icon">👥</span> Readers</div>
     <div class="snav-link" data-page="bookings"><span class="snav-icon">📢</span> Ad Bookings</div>
     <div class="snav-link" data-page="settings"><span class="snav-icon">⚙️</span> Settings &amp; Account</div>
     <div class="snav-link" onclick="window.open('/', '_blank')"><span class="snav-icon">🌐</span> View Website</div>
@@ -519,6 +521,18 @@
       </div>
     </div>
 
+    <!-- READERS PAGE -->
+    <div class="page" id="page-readers">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Readers</div>
+          <div class="page-sub">Discord-connected readers and their reading activity.</div>
+        </div>
+        <button class="btn btn-outline" onclick="loadReaders()">↻ Refresh</button>
+      </div>
+      <div id="readers-list"></div>
+    </div>
+
     <!-- BOOKINGS PAGE -->
     <div class="page" id="page-bookings">
       <div class="page-header">
@@ -714,6 +728,7 @@ function navTo(page) {
   if (page === 'dashboard') loadDashboard();
   if (page === 'articles') loadArticlesList();
   if (page === 'new-article') { editingArticleId = null; resetEditor(); }
+  if (page === 'readers') loadReaders();
   if (page === 'bookings') loadBookings();
   if (page === 'settings') loadSettings();
 }
@@ -935,6 +950,41 @@ function insertLink(event) {
 document.getElementById('rich-editor').addEventListener('input', function() {
   this.dataset.empty = this.innerHTML === '' || this.innerHTML === '<br>';
 });
+
+// ── READERS ───────────────────────────────────────────────────────────────────
+async function loadReaders() {
+  const el = document.getElementById('readers-list');
+  el.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Loading…</p>';
+  try {
+    const r = await fetch('/api/readers');
+    if (!r.ok) throw new Error('Failed');
+    const readers = await r.json();
+    if (!readers.length) {
+      el.innerHTML = `<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:40px;text-align:center;color:var(--text-muted);">
+        <div style="font-size:40px;margin-bottom:12px;">👥</div>
+        <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px;">No readers yet</div>
+        <p>Readers who connect their Discord will appear here.</p>
+      </div>`;
+      return;
+    }
+    el.innerHTML = `<div class="recent-table"><table>
+      <thead><tr><th>Reader</th><th>Discord</th><th>Articles Read</th><th>Joined</th></tr></thead>
+      <tbody>${readers.map(r => `
+        <tr>
+          <td style="display:flex;align-items:center;gap:10px;">
+            <img src="${esc(r.avatar)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'" />
+            <span style="font-weight:600;color:var(--navy);">${esc(r.displayName)}</span>
+          </td>
+          <td style="font-size:12px;color:var(--text-muted);">${esc(r.discordTag || '—')}</td>
+          <td><span style="font-weight:700;color:var(--navy);">📖 ${r.articlesRead}</span></td>
+          <td style="font-size:12px;color:var(--text-muted);">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-GB') : '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
+  } catch {
+    el.innerHTML = '<p style="color:var(--red);padding:20px;">Failed to load readers.</p>';
+  }
+}
 
 // ── BOOKINGS ──────────────────────────────────────────────────────────────────
 const STATUS_LABELS = { new: '🔵 New', contacted: '🟡 Contacted', confirmed: '🟢 Confirmed', declined: '🔴 Declined' };

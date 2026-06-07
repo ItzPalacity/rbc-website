@@ -1,7 +1,7 @@
 {
   "admin": {
     "username": "admin",
-    "password": "$2a$10$NJrj9DS.M8Rkb2eD7SN8qeLABGUTMhG/jhLrJgxuim4A2Cd8EXbde",
+    "password": "$2a$10$/rxAU.e1ObV.CY.9FMl7l.Yyp76CwXVWIc.jJfTS.bvBqtJP1PWOC",
     "displayName": "Editor-in-Chief",
     "role": "admin"
   }

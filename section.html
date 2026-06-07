@@ -120,6 +120,14 @@
           </div>
         </div>
 
+        <div class="widget" id="discord-widget">
+          <div class="widget__header" style="background:#5865F2;color:#fff;">🎮 RBC Reader Account</div>
+          <div class="widget__body" id="discord-widget-body">
+            <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:12px;">Connect your Discord to track your reading history.</p>
+            <a href="/auth/discord" class="btn btn--primary btn--sm" style="width:100%;justify-content:center;background:#5865F2;border-color:#5865F2;">Connect Discord</a>
+          </div>
+        </div>
+
         <div class="widget">
           <div class="widget__header widget__header--red">📻 About RBC</div>
           <div class="widget__body">
@@ -358,6 +366,28 @@ if (isArchive) {
 }
 
 loadPage();
+
+// Discord widget
+(async function() {
+  const body = document.getElementById('discord-widget-body');
+  if (!body) return;
+  try {
+    const r = await fetch('/api/public-me');
+    if (r.ok) {
+      const u = await r.json();
+      body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <img src="${u.avatar}" style="width:36px;height:36px;border-radius:50%;" onerror="this.style.display='none'" />
+          <div>
+            <div style="font-weight:700;font-size:13px;color:var(--navy);">${u.displayName}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Connected via Discord</div>
+          </div>
+        </div>
+        <button onclick="discordLogout()" style="width:100%;padding:8px;background:transparent;border:1.5px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:inherit;">Sign Out</button>`;
+    }
+  } catch {}
+})();
+async function discordLogout() { await fetch('/api/public-logout',{method:'POST'}); location.reload(); }
 </script>
 </body>
 </html>
