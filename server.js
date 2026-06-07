@@ -278,6 +278,49 @@ app.post('/api/public-logout', (req, res) => {
   req.session.save(() => res.json({ ok: true }));
 });
 
+// ── READER EMAIL/PASSWORD AUTH ────────────────────────────────────────────────
+app.post('/api/reader/register', (req, res) => {
+  const { email, password, displayName } = req.body;
+  if (!email || !password || !displayName)
+    return res.status(400).json({ error: 'All fields are required.' });
+  if (password.length < 6)
+    return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  const users = readJSON(USERS_FILE);
+  const emailLower = email.toLowerCase().trim();
+  const duplicate = Object.values(users).find(u => u.email === emailLower);
+  if (duplicate)
+    return res.status(400).json({ error: 'An account with that email already exists.' });
+  const key = 'reader_' + generateId();
+  users[key] = {
+    username: key,
+    email: emailLower,
+    password: bcrypt.hashSync(password, 10),
+    displayName: displayName.trim(),
+    role: 'reader',
+    avatar: null,
+    createdAt: new Date().toISOString(),
+    articlesRead: []
+  };
+  writeJSON(USERS_FILE, users);
+  req.session.publicUser = { key, displayName: users[key].displayName, avatar: null, role: 'reader' };
+  res.json({ ok: true, user: req.session.publicUser });
+});
+
+app.post('/api/reader/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ error: 'Email and password are required.' });
+  const users = readJSON(USERS_FILE);
+  const entry = Object.entries(users).find(([, u]) => u.email === email.toLowerCase().trim() && u.role === 'reader');
+  if (!entry)
+    return res.status(401).json({ error: 'No account found with that email.' });
+  const [key, user] = entry;
+  if (!bcrypt.compareSync(password, user.password))
+    return res.status(401).json({ error: 'Incorrect password.' });
+  req.session.publicUser = { key, displayName: user.displayName, avatar: user.avatar || null, role: 'reader' };
+  res.json({ ok: true, user: req.session.publicUser });
+});
+
 // ── ARTICLES API ──────────────────────────────────────────────────────────────
 app.get('/api/articles', (req, res) => {
   let articles = readJSON(ARTICLES_FILE);
