@@ -128,7 +128,7 @@ function renderLoggedIn(wrap, u) {
 }
 
 function renderLoggedOut(wrap) {
-  wrap.innerHTML = `<button onclick="rbcOpenModal()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:20px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;" onmouseenter="this.style.background='rgba(255,255,255,0.2)'" onmouseleave="this.style.background='rgba(255,255,255,0.12)'">Sign In</button>`;
+  wrap.innerHTML = `<button onclick="rbcOpenModal()" style="display:flex;align-items:center;gap:6px;background:#fff;color:#1a3a5c;border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .15s;box-shadow:0 1px 4px rgba(0,0,0,.15);" onmouseenter="this.style.opacity='.88'" onmouseleave="this.style.opacity='1'">Sign In</button>`;
 }
 
 function rbcOpenModal() {

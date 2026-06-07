@@ -22,7 +22,7 @@
       </div>
       <div class="topbar__right" style="margin-left:auto;">
         <span class="topbar__date" id="topbar-date"></span>
-        <span class="topbar__server">democracycraft.net</span>
+        <span class="topbar__server">play.democracycraft.net</span>
       </div>
     </div>
   </div>
@@ -105,11 +105,17 @@
   <div class="container--wide">
     <div class="hero__grid">
       <a href="#" class="hero__main" id="hero-main">
+        <!-- hero image shown when article has one -->
+        <img id="hero-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" />
         <div class="img-placeholder hero__main-img" style="min-height:520px;" id="hero-emoji">📰</div>
         <div class="hero__main-overlay">
           <div class="hero__main-tag"><span class="tag" id="hero-tag">NEWS</span></div>
           <h1 class="hero__main-title" id="hero-title"></h1>
           <div class="hero__main-meta" id="hero-meta"></div>
+          <!-- progress bar -->
+          <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.15);">
+            <div id="hero-progress" style="height:100%;background:var(--gold);width:0%;transition:width linear;"></div>
+          </div>
         </div>
       </a>
       <aside class="hero__sidebar">
@@ -372,9 +378,17 @@ async function discordLogout() {
   function fmtDate(iso) {
     return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
   }
+  function fmtViews(n) {
+    if (!n) return '0 views';
+    if (n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'') + 'k views';
+    return n + ' views';
+  }
   function card(a, featured) {
+    const imgHtml = a.heroImage
+      ? `<img src="${a.heroImage}" alt="${a.title}" style="width:100%;height:100%;object-fit:cover;object-position:${a.heroImageFocus?a.heroImageFocus.x+'% '+a.heroImageFocus.y+'%':'center'}" />`
+      : `<div class="img-placeholder card__img" style="height:100%;">${a.heroEmoji||'📰'}</div>`;
     return `<article class="card${featured?' card--featured':''}">
-      <div class="card__img-wrap"><div class="img-placeholder card__img">${a.heroEmoji||'📰'}</div></div>
+      <div class="card__img-wrap">${imgHtml}</div>
       <div class="card__body">
         <span class="tag ${catClass(a.category)}">${a.category.toUpperCase()}</span>
         <h3 class="card__title"><a href="/article/${a.slug}">${a.title}</a></h3>
@@ -383,6 +397,8 @@ async function discordLogout() {
           <span class="card__author">${a.author}</span>
           <span class="card__dot">·</span>
           <span>${fmtDate(a.publishedAt||a.createdAt)}</span>
+          <span class="card__dot">·</span>
+          <span style="color:var(--text-muted);">👁 ${fmtViews(a.views)}</span>
         </div>
       </div>
     </article>`;
@@ -393,25 +409,74 @@ async function discordLogout() {
     const all = await r.json();
     const published = all.filter(a => a.status === 'published');
 
-    if (!published.length) return; // empty state already visible
+    if (!published.length) return;
 
-    // Show hero, hide empty state
     document.getElementById('hero-empty').style.display = 'none';
     document.getElementById('hero-section').style.display = '';
 
-    // Hero main
-    const h = published[0];
-    document.getElementById('hero-main').href = `/article/${h.slug}`;
-    document.getElementById('hero-emoji').textContent = h.heroEmoji || '📰';
-    document.getElementById('hero-tag').textContent = h.category.toUpperCase();
-    document.getElementById('hero-title').textContent = h.title;
-    document.getElementById('hero-meta').innerHTML = `<span>By <strong>${h.author}</strong></span><span class="hero__main-meta-dot">·</span><span>${fmtDate(h.publishedAt||h.createdAt)}</span>`;
+    // ── HERO CAROUSEL ──────────────────────────────────────────────────────
+    const heroArticles = published.slice(0, 5);
+    let heroIdx = 0;
+    let heroTimer = null;
+    const HERO_DURATION = 7000; // ms per slide
 
-    // Hero sidebar
-    const sidebar = published.slice(1, 5);
-    document.getElementById('hero-sidebar-list').innerHTML = sidebar.map((a, i) => `
-      <a href="/article/${a.slug}" class="sidebar-story">
-        <span class="sidebar-story__num">0${i+1}</span>
+    function showHero(idx, resetTimer) {
+      heroIdx = idx;
+      const h = heroArticles[idx];
+
+      // Fade transition
+      const overlay = document.querySelector('.hero__main-overlay');
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity .3s';
+      setTimeout(() => { overlay.style.opacity = '1'; }, 50);
+
+      document.getElementById('hero-main').href = `/article/${h.slug}`;
+
+      // Image or emoji
+      const imgEl = document.getElementById('hero-img');
+      const emojiEl = document.getElementById('hero-emoji');
+      if (h.heroImage) {
+        imgEl.src = h.heroImage;
+        imgEl.style.objectPosition = h.heroImageFocus ? h.heroImageFocus.x+'% '+h.heroImageFocus.y+'%' : 'center';
+        imgEl.style.display = 'block';
+        emojiEl.style.display = 'none';
+      } else {
+        imgEl.style.display = 'none';
+        emojiEl.style.display = '';
+        emojiEl.textContent = h.heroEmoji || '📰';
+      }
+
+      document.getElementById('hero-tag').textContent = h.category.toUpperCase();
+      document.getElementById('hero-tag').className = 'tag ' + catClass(h.category);
+      document.getElementById('hero-title').textContent = h.title;
+      document.getElementById('hero-meta').innerHTML =
+        `<span>By <strong>${h.author}</strong></span><span class="hero__main-meta-dot">·</span><span>${fmtDate(h.publishedAt||h.createdAt)}</span><span class="hero__main-meta-dot">·</span><span>👁 ${fmtViews(h.views)}</span>`;
+
+      // Sidebar highlight
+      document.querySelectorAll('#hero-sidebar-list .sidebar-story').forEach((el, i) => {
+        el.style.background = i === idx ? 'rgba(200,168,75,0.12)' : '';
+        el.style.borderLeft = i === idx ? '3px solid var(--gold)' : '3px solid transparent';
+      });
+
+      // Progress bar
+      const bar = document.getElementById('hero-progress');
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        bar.style.transition = `width ${HERO_DURATION}ms linear`;
+        bar.style.width = '100%';
+      }));
+
+      if (resetTimer) {
+        clearInterval(heroTimer);
+        heroTimer = setInterval(() => showHero((heroIdx + 1) % heroArticles.length, true), HERO_DURATION);
+      }
+    }
+
+    // Build sidebar list — clicking switches hero, doesn't navigate
+    document.getElementById('hero-sidebar-list').innerHTML = heroArticles.map((a, i) => `
+      <a href="/article/${a.slug}" class="sidebar-story" style="border-left:3px solid transparent;" onclick="(function(e){e.preventDefault();window._showHero(${i});})(event)">
+        <span class="sidebar-story__num">${String(i+1).padStart(2,'0')}</span>
         <div class="sidebar-story__body">
           <div class="sidebar-story__tag"><span class="tag ${catClass(a.category)}">${a.category.toUpperCase()}</span></div>
           <div class="sidebar-story__title">${a.title}</div>
@@ -419,18 +484,19 @@ async function discordLogout() {
         </div>
       </a>`).join('');
 
-    // Latest stories
+    window._showHero = (i) => showHero(i, true);
+    showHero(0, false);
+    heroTimer = setInterval(() => showHero((heroIdx + 1) % heroArticles.length, true), HERO_DURATION);
+
+    // ── LATEST STORIES ─────────────────────────────────────────────────────
     const top2 = published.slice(0, 2);
     const next3 = published.slice(2, 5);
-    const latestTop = document.getElementById('latest-top');
-    const latestBot = document.getElementById('latest-bottom');
-    const latestEmpty = document.getElementById('latest-empty');
-    if (top2.length) { latestTop.innerHTML = top2.map(a => card(a, true)).join(''); }
-    if (next3.length) { latestBot.innerHTML = next3.map(a => card(a, false)).join(''); }
-    if (!top2.length) latestEmpty.style.display = '';
+    if (top2.length) document.getElementById('latest-top').innerHTML = top2.map(a => card(a, true)).join('');
+    if (next3.length) document.getElementById('latest-bottom').innerHTML = next3.map(a => card(a, false)).join('');
+    if (!top2.length) document.getElementById('latest-empty').style.display = '';
 
-    // Trending sidebar
-    const trending = published.slice(0, 5);
+    // ── TRENDING — sorted by views ─────────────────────────────────────────
+    const trending = [...published].sort((a, b) => (b.views||0) - (a.views||0)).slice(0, 5);
     if (trending.length) {
       document.getElementById('trending-widget').style.display = '';
       document.getElementById('trending-list').innerHTML = trending.map((a, i) => `
@@ -438,12 +504,12 @@ async function discordLogout() {
           <span class="trending-item__num">${i+1}</span>
           <div class="trending-item__body">
             <div class="trending-item__title">${a.title}</div>
-            <div class="trending-item__meta">${a.category}</div>
+            <div class="trending-item__meta">${a.category} · 👁 ${fmtViews(a.views)}</div>
           </div>
         </a>`).join('');
     }
 
-    // Opinion section
+    // ── OPINION SECTION ────────────────────────────────────────────────────
     const opinions = published.filter(a => a.category === 'Opinion').slice(0, 3);
     if (opinions.length) {
       document.getElementById('opinion-section').style.display = '';
