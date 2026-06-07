@@ -53,7 +53,8 @@
           <input class="search-bar__input" placeholder="Search…" type="search" />
           <button class="search-bar__btn">🔍</button>
         </div>
-        <a href="submit.html" class="btn btn--primary btn--sm">Submit a Tip</a>
+        <div id="nav-user-wrap" style="position:relative;display:flex;align-items:center;"></div>
+        <a href="/submit" class="btn btn--primary btn--sm">Submit a Tip</a>
       </div>
     </div>
   </div>
@@ -311,6 +312,50 @@
 
 <script src="js/main.js"></script>
 <script>
+// ── NAV USER BUTTON ────────────────────────────────────────────────────────────
+(async function initNavUser() {
+  const wrap = document.getElementById('nav-user-wrap');
+  if (!wrap) return;
+  try {
+    const r = await fetch('/api/public-me');
+    if (r.ok) {
+      const u = await r.json();
+      // Logged-in pill
+      wrap.innerHTML = `
+        <button id="nav-user-btn" onclick="toggleNavUserMenu(event)" style="display:flex;align-items:center;gap:7px;background:transparent;border:1.5px solid rgba(255,255,255,0.25);border-radius:20px;padding:4px 10px 4px 5px;cursor:pointer;color:#fff;font-family:inherit;font-size:12px;font-weight:600;transition:border-color .15s;" onmouseenter="this.style.borderColor='rgba(255,255,255,0.6)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.25)'">
+          <img src="${u.avatar}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'" />
+          <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.displayName}</span>
+          <span style="opacity:.6;font-size:10px;">▾</span>
+        </button>
+        <div id="nav-user-menu" style="display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:180px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:9999;overflow:hidden;">
+          <div style="padding:12px 14px;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:13px;font-weight:700;color:#1a3a5c;">${u.displayName}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Connected via Discord</div>
+          </div>
+          <button onclick="navUserSignOut()" style="width:100%;padding:10px 14px;background:transparent;border:none;text-align:left;font-size:13px;color:#64748b;cursor:pointer;font-family:inherit;" onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background='transparent'">Sign Out</button>
+        </div>`;
+    } else {
+      // Logged-out button
+      wrap.innerHTML = `<a href="/auth/discord" style="display:flex;align-items:center;gap:6px;background:#5865F2;color:#fff;border:none;border-radius:20px;padding:5px 13px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;transition:opacity .15s;" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'"><svg width="14" height="14" viewBox="0 0 71 55" fill="currentColor" style="flex-shrink:0"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.4.6a40.7 40.7 0 0 0-1.8 3.7 54.2 54.2 0 0 0-16.2 0A40.1 40.1 0 0 0 25.6.6 58.4 58.4 0 0 0 10.9 4.9C1.6 18.7-1 32.2.3 45.5a58.9 58.9 0 0 0 17.9 9 44.5 44.5 0 0 0 3.8-6.3 38.3 38.3 0 0 1-6-2.9c.5-.4 1-.7 1.5-1.1a41.9 41.9 0 0 0 35.9 0l1.5 1.1a38.4 38.4 0 0 1-6 2.9 44.4 44.4 0 0 0 3.8 6.3 58.7 58.7 0 0 0 17.9-9C72 30.2 68.9 16.8 60.1 4.9ZM23.7 37.4c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.5 0 6.4 3.2 6.3 7.2 0 4-2.8 7.2-6.3 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2c3.5 0 6.4 3.2 6.3 7.2 0 4-2.8 7.2-6.3 7.2Z"/></svg>Sign In</a>`;
+    }
+  } catch {}
+})();
+
+function toggleNavUserMenu(e) {
+  e.stopPropagation();
+  const m = document.getElementById('nav-user-menu');
+  if (!m) return;
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('nav-user-menu');
+  if (m) m.style.display = 'none';
+});
+async function navUserSignOut() {
+  await fetch('/api/public-logout', { method: 'POST' });
+  location.reload();
+}
+
 // Load ticker & breaking news from settings
 (async function loadSettings() {
   try {
