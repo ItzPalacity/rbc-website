@@ -1,3 +1,11 @@
 node_modules/
 images/uploads/*
 !images/uploads/.gitkeep
+
+# Data files — these are runtime data, NOT source code.
+# Changes to articles/users/settings must never be overwritten by a deploy.
+data/articles.json
+data/users.json
+data/settings.json
+data/bookings.json
+data/sessions/

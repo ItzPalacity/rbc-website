@@ -47,14 +47,31 @@ if (!fs.existsSync(ARTICLES_FILE)) writeJSON(ARTICLES_FILE, []);
 if (!fs.existsSync(BOOKINGS_FILE)) writeJSON(BOOKINGS_FILE, []);
 if (!fs.existsSync(SETTINGS_FILE)) writeJSON(SETTINGS_FILE, { breakingNews: '', ticker: [] });
 if (!fs.existsSync(USERS_FILE)) {
+  // Use ADMIN_PASSWORD env var if set, otherwise fall back to default
+  const initialPassword = process.env.ADMIN_PASSWORD || 'Admin2024!';
   writeJSON(USERS_FILE, {
     admin: {
       username: 'admin',
-      password: bcrypt.hashSync('Admin2024!', 10),
+      password: bcrypt.hashSync(initialPassword, 10),
       displayName: 'Editor-in-Chief',
       role: 'admin'
     }
   });
+  console.log(process.env.ADMIN_PASSWORD
+    ? '[RBC] Admin account created from ADMIN_PASSWORD env var.'
+    : '[RBC] Admin account created with default password Admin2024! — set ADMIN_PASSWORD env var to control this.'
+  );
+}
+
+// If ADMIN_PASSWORD env var is set and differs from stored hash, update it.
+// This lets you reset the password by changing the env var in Railway.
+if (process.env.ADMIN_PASSWORD) {
+  const users = readJSON(USERS_FILE);
+  if (users.admin && !bcrypt.compareSync(process.env.ADMIN_PASSWORD, users.admin.password)) {
+    users.admin.password = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10);
+    writeJSON(USERS_FILE, users);
+    console.log('[RBC] Admin password updated from ADMIN_PASSWORD env var.');
+  }
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
