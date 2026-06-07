@@ -20,7 +20,8 @@ const ARTICLES_FILE = path.join(DATA_DIR, 'articles.json');
 const USERS_FILE    = path.join(DATA_DIR, 'users.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
-const UPLOADS_DIR   = path.join(__dirname, 'images', 'uploads');
+// Uploads stored on persistent volume so images survive deployments
+const UPLOADS_DIR   = path.join(DATA_DIR, 'uploads');
 
 // Ensure directories exist
 [DATA_DIR, SESSIONS_DIR, UPLOADS_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
@@ -114,6 +115,9 @@ const upload = multer({
     else cb(new Error('Only images allowed'));
   }
 });
+
+// Serve uploaded images from the persistent volume
+app.use('/images/uploads', express.static(UPLOADS_DIR));
 
 // Serve static files
 app.use(express.static(__dirname, { index: 'index.html', extensions: ['html'] }));
